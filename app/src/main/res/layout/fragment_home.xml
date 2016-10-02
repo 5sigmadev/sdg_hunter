@@ -1,0 +1,83 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.fivesigmagames.sdghunter.view.HomeFragment">
+
+
+    <TextView
+        android:text="SDG Hunter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/sdh_hunter_text"
+        android:layout_marginBottom="13dp"
+        android:layout_above="@+id/home_cam_btn"
+        android:layout_centerHorizontal="true" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/red_mon_bg"
+        app:srcCompat="@drawable/red_monster"
+        android:scaleType="fitXY"
+        android:cropToPadding="false"
+        android:layout_alignParentBottom="true"
+        android:adjustViewBounds="true" />
+
+    <Button
+        android:id="@+id/home_cam_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="90dp"
+        android:layout_margin="40dp" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:srcCompat="@drawable/yellow_monster_on_bg"
+        android:layout_marginTop="14dp"
+        android:layout_marginLeft="30dp"
+        android:id="@+id/iv_yellow_monster_on_bg"
+        android:adjustViewBounds="true"
+        android:scaleType="fitXY"
+        android:cropToPadding="false"
+        android:layout_alignParentTop="true"
+        android:layout_toStartOf="@+id/sdh_hunter_text"
+        android:rotationX="30"
+        android:rotationY="30"
+        android:scaleX="1.5"
+        android:scaleY="1.5" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:srcCompat="@drawable/red_monster_on_bg"
+        android:layout_toEndOf="@+id/sdh_hunter_text"
+        android:id="@+id/iv_red_monster_on_bg"
+        android:layout_above="@+id/iv_green_monster_on_bg"
+        android:scaleX="1.5"
+        android:scaleY="1.5"
+        android:layout_alignTop="@+id/iv_yellow_monster_on_bg"
+        android:layout_marginRight="30dp"
+        android:rotationX="-30"
+        android:rotationY="30" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:srcCompat="@drawable/green_monster_on_bg"
+        android:id="@+id/iv_green_monster_on_bg"
+        android:adjustViewBounds="true"
+        android:scaleType="fitXY"
+        android:scaleX="0.6"
+        android:scaleY="0.6"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/iv_yellow_monster_on_bg"
+        android:layout_marginBottom="30dp"
+        android:rotationY="-30" />
+
+
+</RelativeLayout>

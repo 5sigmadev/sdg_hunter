@@ -1,5 +1,6 @@
-package com.fivesigmagames.sdhhunter;
+package com.fivesigmagames.sdghunter;
 
+import android.net.Uri;
 import android.support.design.widget.TabLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -19,7 +20,11 @@ import android.view.ViewGroup;
 
 import android.widget.TextView;
 
-public class SDHActivity extends AppCompatActivity {
+import com.fivesigmagames.sdghunter.view.HomeFragment;
+import com.fivesigmagames.sdghunter.view.MapFragment;
+
+public class SDGActivity extends AppCompatActivity implements HomeFragment.OnFragmentInteractionListener,
+        MapFragment.OnFragmentInteractionListener {
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -54,15 +59,6 @@ public class SDHActivity extends AppCompatActivity {
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
-
     }
 
 
@@ -76,7 +72,7 @@ public class SDHActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
+        // automatically handle clicks on the HomeFragment/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
@@ -86,6 +82,12 @@ public class SDHActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    // Interface Methods
+    @Override
+    public void onFragmentInteraction(Uri uri) {
+
     }
 
     /**
@@ -136,25 +138,36 @@ public class SDHActivity extends AppCompatActivity {
         @Override
         public Fragment getItem(int position) {
             // getItem is called to instantiate the fragment for the given page.
-            // Return a PlaceholderFragment (defined as a static inner class below).
-            return PlaceholderFragment.newInstance(position + 1);
+            switch (position){
+                case 0:
+                    return HomeFragment.newInstance();
+                case 1:
+                    return MapFragment.newInstance();
+                case 2:
+                    return PlaceholderFragment.newInstance(position + 1);
+                case 3:
+                    return PlaceholderFragment.newInstance(position + 1);
+            }
+            return null;
         }
 
         @Override
         public int getCount() {
-            // Show 3 total pages.
-            return 3;
+            // Show 4 total pages.
+            return 4;
         }
 
         @Override
         public CharSequence getPageTitle(int position) {
             switch (position) {
                 case 0:
-                    return "SECTION 1";
+                    return "HOME";
                 case 1:
-                    return "SECTION 2";
+                    return "MAP";
                 case 2:
-                    return "SECTION 3";
+                    return "SHARE";
+                case 3:
+                    return "ABOUT";
             }
             return null;
         }
