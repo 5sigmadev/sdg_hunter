@@ -1,4 +1,4 @@
-package fivesigmagamescom.sdhhunter;
+package com.fivesigmagames.sdhhunter;
 
 import android.support.design.widget.TabLayout;
 import android.support.design.widget.FloatingActionButton;
