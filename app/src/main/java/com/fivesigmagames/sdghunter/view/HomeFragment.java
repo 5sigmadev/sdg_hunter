@@ -47,7 +47,7 @@ public class HomeFragment extends Fragment {
     private TextView tv_sdg_hunter;
     private Button btn_cam;
 
-
+    //INTERFACES
     private OnFragmentInteractionListener mListener;
 
     public HomeFragment() {

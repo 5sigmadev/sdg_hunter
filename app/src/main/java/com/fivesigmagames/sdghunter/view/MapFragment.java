@@ -24,10 +24,14 @@ import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
  */
 public class MapFragment extends Fragment {
 
-
+    //CONSTANTS
     private static final String MAPBOX_TOKEN = "sk.eyJ1IjoicHBhbmVybyIsImEiOiJjaXRzbnUzZ3cwMDBhMnRyMnZhcnl0ZXI1In0.-TP1AduK2zWwovwYdQfouw";
-    private OnFragmentInteractionListener mListener;
+
+    //VARS
     private MapView mapView;
+
+    //INTERFACES
+    private OnFragmentInteractionListener mListener;
 
     public MapFragment() {
         // Required empty public constructor

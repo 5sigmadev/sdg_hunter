@@ -1,9 +1,10 @@
 package com.fivesigmagames.sdghunter;
 
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.support.design.widget.TabLayout;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
@@ -20,11 +21,17 @@ import android.view.ViewGroup;
 
 import android.widget.TextView;
 
+import com.fivesigmagames.sdghunter.adapter.ShareItem;
 import com.fivesigmagames.sdghunter.view.HomeFragment;
 import com.fivesigmagames.sdghunter.view.MapFragment;
+import com.fivesigmagames.sdghunter.view.ShareActivity;
+import com.fivesigmagames.sdghunter.view.ShareFragment;
+
+import java.io.File;
+import java.util.ArrayList;
 
 public class SDGActivity extends AppCompatActivity implements HomeFragment.OnFragmentInteractionListener,
-        MapFragment.OnFragmentInteractionListener {
+        MapFragment.OnFragmentInteractionListener, ShareFragment.OnShareFragmentInteractionListener {
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -90,6 +97,25 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnFra
 
     }
 
+    // Share Fragment
+    @Override
+    public void sharePicture(int position) {
+        ShareFragment fragment = (ShareFragment) getSupportFragmentManager().findFragmentByTag(getFragementTag(2));
+        ShareItem item = fragment.getShareItem(position);
+
+        //Create intent
+        Intent intent = new Intent(SDGActivity.this, ShareActivity.class);
+        //intent.putExtra("title", item.getTitle());
+        //intent.putExtra("image", item.getImage());
+
+        //Start details activity
+        startActivity(intent);
+    }
+
+    private String getFragementTag(int position) {
+        return "android:switcher:" + mViewPager.getId() + ":" + position;
+    }
+
     /**
      * A placeholder fragment containing a simple view.
      */
@@ -144,7 +170,7 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnFra
                 case 1:
                     return MapFragment.newInstance();
                 case 2:
-                    return PlaceholderFragment.newInstance(position + 1);
+                    return ShareFragment.newInstance(getSDGImages());
                 case 3:
                     return PlaceholderFragment.newInstance(position + 1);
             }
@@ -171,5 +197,21 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnFra
             }
             return null;
         }
+    }
+
+    private ArrayList<ShareItem> getSDGImages() {
+
+        ArrayList<ShareItem> files = new ArrayList();// list of file paths
+        File file= new File(android.os.Environment.getExternalStorageDirectory(),"Pictures/Instagram");
+
+        if (file.isDirectory()) {
+            File[] listFile = file.listFiles();
+            BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+            for (int i = 0; i < listFile.length; i++) {
+                Bitmap bitmap = BitmapFactory.decodeFile(listFile[i].getAbsolutePath(),bmOptions);
+                files.add(new ShareItem(bitmap, listFile[i].getName()));
+            }
+        }
+        return files;
     }
 }
