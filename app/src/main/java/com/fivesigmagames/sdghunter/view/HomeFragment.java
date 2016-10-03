@@ -23,7 +23,7 @@ import com.fivesigmagames.sdghunter.R;
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
- * {@link HomeFragment.OnFragmentInteractionListener} interface
+ * {@link HomeFragment.OnHomeFragmentInteractionListener} interface
  * to handle interaction events.
  * Use the {@link HomeFragment#newInstance} factory method to
  * create an instance of this fragment.
@@ -48,7 +48,7 @@ public class HomeFragment extends Fragment {
     private Button btn_cam;
 
     //INTERFACES
-    private OnFragmentInteractionListener mListener;
+    private OnHomeFragmentInteractionListener mListener;
 
     public HomeFragment() {
         // Required empty public constructor
@@ -123,6 +123,12 @@ public class HomeFragment extends Fragment {
         Bitmap resized_cam_button = Bitmap.createScaledBitmap(cam_button, (int)(cam_button.getWidth()*0.1), (int)(cam_button.getHeight()*0.08), true);
         // set the Drawable on the ImageView
         btn_cam.setBackground(new BitmapDrawable(getResources(),resized_cam_button));
+        btn_cam.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mListener.activateCamera();
+            }
+        });
 
         return rootView;
     }
@@ -170,18 +176,11 @@ public class HomeFragment extends Fragment {
         return new int[]{new_img_width, new_img_height};
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
-    }
-
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
+        if (context instanceof OnHomeFragmentInteractionListener) {
+            mListener = (OnHomeFragmentInteractionListener) context;
         } else {
             throw new RuntimeException(context.toString()
                     + " must implement OnFragmentInteractionListener");
@@ -204,8 +203,8 @@ public class HomeFragment extends Fragment {
      * "http://developer.android.com/training/basics/fragments/communicating.html"
      * >Communicating with Other Fragments</a> for more information.
      */
-    public interface OnFragmentInteractionListener {
+    public interface OnHomeFragmentInteractionListener {
         // TODO: Update argument type and name
-        void onFragmentInteraction(Uri uri);
+        void activateCamera();
     }
 }

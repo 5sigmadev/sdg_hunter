@@ -7,15 +7,6 @@
     tools:context="com.fivesigmagames.sdghunter.view.HomeFragment">
 
 
-    <TextView
-        android:text="SDG Hunter"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/sdh_hunter_text"
-        android:layout_marginBottom="13dp"
-        android:layout_above="@+id/home_cam_btn"
-        android:layout_centerHorizontal="true" />
-
     <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -36,8 +27,8 @@
         android:layout_margin="40dp" />
 
     <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         app:srcCompat="@drawable/yellow_monster_on_bg"
         android:id="@+id/iv_yellow_monster_on_bg"
         android:scaleType="fitXY"
@@ -53,8 +44,8 @@
         android:layout_alignParentStart="true" />
 
     <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         app:srcCompat="@drawable/red_monster_on_bg"
         android:id="@+id/iv_red_monster_on_bg"
         android:scaleType="fitXY"
@@ -70,8 +61,8 @@
         android:layout_alignParentEnd="true"/>
 
     <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         app:srcCompat="@drawable/green_monster_on_bg"
         android:id="@+id/iv_green_monster_on_bg"
         android:scaleType="fitXY"
@@ -80,8 +71,21 @@
         android:rotationY="-30"
         android:cropToPadding="false"
         android:adjustViewBounds="true"
-        android:layout_alignParentTop="true"
-        android:layout_marginTop="70dp" />
+        android:layout_alignParentStart="true"
+        android:layout_above="@+id/sdh_hunter_text" />
+
+    <TextView
+        android:text="SDG Hunter"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/sdh_hunter_text"
+        android:layout_marginBottom="68dp"
+        android:textAppearance="@style/TextAppearance.AppCompat.Title"
+        android:textAlignment="center"
+        android:fontFamily="casual"
+        android:textStyle="normal|bold"
+        android:layout_alignBottom="@+id/home_cam_btn"
+        android:layout_alignParentStart="true" />
 
 
 </RelativeLayout>

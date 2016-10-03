@@ -12,53 +12,48 @@
     tools:context="com.fivesigmagames.sdghunter.view.ShareActivity">
 
     <Button
-        android:text="Button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:id="@+id/button" />
+        android:id="@+id/btn_share_twt"
+        android:background="@drawable/share_twitter_btn" />
 
     <Button
-        android:text="Button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/button"
+        android:layout_above="@+id/btn_share_twt"
         android:layout_centerHorizontal="true"
-        android:id="@+id/button2" />
+        android:id="@+id/btn_share_insta"
+        android:background="@drawable/share_instagram_btn" />
 
     <Button
-        android:text="Button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/button2"
-        android:layout_alignStart="@+id/button2"
-        android:id="@+id/button3" />
+        android:id="@+id/btn_share_fb"
+        android:background="@drawable/share_facebook_btn"
+        android:layout_above="@+id/btn_share_insta"
+        android:layout_centerHorizontal="true" />
 
     <EditText
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:inputType="textMultiLine"
         android:ems="10"
-        android:layout_above="@+id/button3"
+        android:id="@+id/share_text"
+        android:layout_above="@+id/btn_share_fb"
         android:layout_centerHorizontal="true"
-        android:id="@+id/editText" />
+        android:layout_marginTop="17dp" />
 
     <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:srcCompat="@drawable/red_monster"
-        android:id="@+id/imageView"
+        android:id="@+id/share_activity_pic"
         android:adjustViewBounds="true"
-        android:layout_above="@+id/editText"
-        android:layout_alignParentStart="true"
-        android:layout_marginBottom="17dp" />
-
-    <TextView
-        android:text="TextView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_above="@+id/share_text"
         android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:id="@+id/textView" />
+        android:layout_alignParentStart="true" />
+
+
 </RelativeLayout>

@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.provider.MediaStore;
 import android.support.design.widget.TabLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -22,6 +23,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.fivesigmagames.sdghunter.adapter.ShareItem;
+import com.fivesigmagames.sdghunter.view.AboutFragment;
 import com.fivesigmagames.sdghunter.view.HomeFragment;
 import com.fivesigmagames.sdghunter.view.MapFragment;
 import com.fivesigmagames.sdghunter.view.ShareActivity;
@@ -30,8 +32,9 @@ import com.fivesigmagames.sdghunter.view.ShareFragment;
 import java.io.File;
 import java.util.ArrayList;
 
-public class SDGActivity extends AppCompatActivity implements HomeFragment.OnFragmentInteractionListener,
-        MapFragment.OnFragmentInteractionListener, ShareFragment.OnShareFragmentInteractionListener {
+public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHomeFragmentInteractionListener,
+        MapFragment.OnFragmentInteractionListener, ShareFragment.OnShareFragmentInteractionListener,
+        AboutFragment.OnAboutFragmentInteractionListener {
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -97,6 +100,17 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnFra
 
     }
 
+    // Home Fragment
+    @Override
+    public void activateCamera(){
+        final int REQUEST_IMAGE_CAPTURE = 1;
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+        }
+
+    }
+
     // Share Fragment
     @Override
     public void sharePicture(int position) {
@@ -105,9 +119,7 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnFra
 
         //Create intent
         Intent intent = new Intent(SDGActivity.this, ShareActivity.class);
-        //intent.putExtra("title", item.getTitle());
-        //intent.putExtra("image", item.getImage());
-
+        intent.putExtra("pic_path", item.getFullPath());
         //Start details activity
         startActivity(intent);
     }
@@ -116,40 +128,6 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnFra
         return "android:switcher:" + mViewPager.getId() + ":" + position;
     }
 
-    /**
-     * A placeholder fragment containing a simple view.
-     */
-    public static class PlaceholderFragment extends Fragment {
-        /**
-         * The fragment argument representing the section number for this
-         * fragment.
-         */
-        private static final String ARG_SECTION_NUMBER = "section_number";
-
-        public PlaceholderFragment() {
-        }
-
-        /**
-         * Returns a new instance of this fragment for the given section
-         * number.
-         */
-        public static PlaceholderFragment newInstance(int sectionNumber) {
-            PlaceholderFragment fragment = new PlaceholderFragment();
-            Bundle args = new Bundle();
-            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-            fragment.setArguments(args);
-            return fragment;
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_sdh, container, false);
-            TextView textView = (TextView) rootView.findViewById(R.id.section_label);
-            textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
-            return rootView;
-        }
-    }
 
     /**
      * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
@@ -172,7 +150,7 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnFra
                 case 2:
                     return ShareFragment.newInstance(getSDGImages());
                 case 3:
-                    return PlaceholderFragment.newInstance(position + 1);
+                    return AboutFragment.newInstance();
             }
             return null;
         }
@@ -209,7 +187,7 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnFra
             BitmapFactory.Options bmOptions = new BitmapFactory.Options();
             for (int i = 0; i < listFile.length; i++) {
                 Bitmap bitmap = BitmapFactory.decodeFile(listFile[i].getAbsolutePath(),bmOptions);
-                files.add(new ShareItem(bitmap, listFile[i].getName()));
+                files.add(new ShareItem(bitmap, listFile[i].getName(), listFile[i].getAbsolutePath()));
             }
         }
         return files;
