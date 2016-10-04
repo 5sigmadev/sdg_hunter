@@ -23,7 +23,9 @@ import java.util.List;
 public class ShareActivity extends AppCompatActivity {
 
     // CONSTANTS
-    private static final String INSTAGRAM_NOT_INSTALLED_ERROR_MESSAGE = "Instagram is not installed. Please install it in order to share.";
+    private static final String INSTAGRAM_NOT_INSTALLED_ERROR_MESSAGE = "Instagram is not installed.";
+    private static final String TWITTER_NOT_INSTALLED_ERROR_MESSAGE = "Twitter is not installed.";
+    private static final String FACEBOOK_NOT_INSTALLED_ERROR_MESSAGE = "Facebook is not installed.";
     private static final String UNEXPECTED_ERROR_MESSAGE = "An unexpected error occurred when trying to share" ;
 
     @Override
@@ -66,14 +68,36 @@ public class ShareActivity extends AppCompatActivity {
     }
 
     public void shareFacebook(String fullPicPath, String captionText) {
+        String[] instagramPackages = new String[]{"com.facebook.katana"};
+        String packageName = null;
+        if((packageName = isPackageInstalled(instagramPackages)) != null){
+            String type = "image/*";
+            Intent share = findIntentPackage(packageName, type);
+
+            if(share != null) {
+                share.setAction(Intent.ACTION_SEND);
+                File media = new File(fullPicPath);
+                Uri uri = Uri.fromFile(media);
+                share.putExtra(Intent.EXTRA_STREAM, uri);
+                share.putExtra(Intent.EXTRA_TEXT,captionText);
+                startActivity(share);
+            }
+            else {
+                Toast.makeText(this, UNEXPECTED_ERROR_MESSAGE, Toast.LENGTH_LONG).show();
+            }
+        }
+        else{
+            Toast.makeText(this, FACEBOOK_NOT_INSTALLED_ERROR_MESSAGE, Toast.LENGTH_LONG).show();
+        }
 
     }
 
     public void shareInstagram(String fullPicPath, String captionText) {
         String[] instagramPackages = new String[]{"com.instagram.android"};
-        if(isPackageInstalled(instagramPackages)){
+        String packageName = null;
+        if((packageName = isPackageInstalled(instagramPackages)) != null){
             String type = "image/*";
-            Intent share = findIntentPackage(instagramPackages, type);
+            Intent share = findIntentPackage(packageName, type);
 
             if(share != null) {
                 share.setAction(Intent.ACTION_SEND);
@@ -102,10 +126,11 @@ public class ShareActivity extends AppCompatActivity {
                 "com.twidroid", // twidroid - 5 000
                 "com.handmark.tweetcaster", // Tweecaster - 5 000
                 "com.thedeck.android" }; // TweetDeck - 5 000 };
-        if(isPackageInstalled(twitterPackages)){
+        String packageName = null;
+        if((packageName = isPackageInstalled(twitterPackages)) != null){
 
             String type = "image/*";
-            Intent share = findIntentPackage(twitterPackages, type);
+            Intent share = findIntentPackage(packageName, type);
 
             if(share != null) {
                 share.setAction(Intent.ACTION_SEND);
@@ -113,7 +138,6 @@ public class ShareActivity extends AppCompatActivity {
                 Uri uri = Uri.fromFile(media);
                 share.putExtra(Intent.EXTRA_STREAM, uri);
                 //TODO: Campaign Hashtag? suppress user text and put hashtag?
-                share.putExtra(Intent.EXTRA_TEXT,captionText);
                 startActivity(share);
             }
             else {
@@ -121,42 +145,40 @@ public class ShareActivity extends AppCompatActivity {
             }
         }
         else{
-            Intent tweet = new Intent(Intent.ACTION_VIEW);
-            tweet.setData(Uri.parse("http://twitter.com/?status=" + Uri.encode(captionText)));
-            startActivity(tweet);
+            Toast.makeText(this, TWITTER_NOT_INSTALLED_ERROR_MESSAGE, Toast.LENGTH_LONG).show();
         }
     }
 
-    private boolean isPackageInstalled(String[] packageList) {
+    private String isPackageInstalled(String[] packageList) {
         boolean installed = false;
+        String packageName = null;
 
         int i = 0;
         while (!installed && i < packageList.length) {
             try {
                 ApplicationInfo info = getPackageManager().getApplicationInfo(packageList[i], 0);
+                packageName = packageList[i];
                 installed = true;
             } catch (PackageManager.NameNotFoundException e) {
                 installed = false;
             }
             ++i;
         }
-        return installed;
+        return packageName;
     }
 
-    private Intent findIntentPackage(String[] possiblePackages, String type) {
+    private Intent findIntentPackage(String packageName, String type) {
 
         Intent intent = new Intent();
         intent.setType(type);
         final PackageManager packageManager = getPackageManager();
         List<ResolveInfo> list = packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
 
-        for (int i = 0; i < possiblePackages.length; i++) {
-            for (ResolveInfo resolveInfo : list) {
-                String p = resolveInfo.activityInfo.packageName;
-                if (p != null && p.startsWith(possiblePackages[i])) {
-                    intent.setPackage(p);
-                    return intent;
-                }
+        for (ResolveInfo resolveInfo : list) {
+            String p = resolveInfo.activityInfo.packageName;
+            if (p != null && p.startsWith(packageName)) {
+                intent.setPackage(p);
+                return intent;
             }
         }
         return null;

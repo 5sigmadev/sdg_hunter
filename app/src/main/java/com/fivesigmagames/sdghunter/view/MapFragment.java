@@ -24,9 +24,6 @@ import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
  */
 public class MapFragment extends Fragment {
 
-    //CONSTANTS
-    private static final String MAPBOX_TOKEN = "sk.eyJ1IjoicHBhbmVybyIsImEiOiJjaXRzbnUzZ3cwMDBhMnRyMnZhcnl0ZXI1In0.-TP1AduK2zWwovwYdQfouw";
-
     //VARS
     private MapView mapView;
 
@@ -46,7 +43,7 @@ public class MapFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         // Mapbox access token only needs to be configured once in your app
-        MapboxAccountManager.start(getContext(), MAPBOX_TOKEN);
+        MapboxAccountManager.start(getContext(), getResources().getString(R.string.mapbox_api_key));
 
     }
 
