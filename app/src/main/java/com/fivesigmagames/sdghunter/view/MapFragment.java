@@ -9,7 +9,10 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.fivesigmagames.sdghunter.R;
+import com.fivesigmagames.sdghunter.adapter.PhotoViewAdapter;
 import com.mapbox.mapboxsdk.MapboxAccountManager;
+import com.mapbox.mapboxsdk.annotations.MarkerViewOptions;
+import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
@@ -42,35 +45,35 @@ public class MapFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Mapbox access token only needs to be configured once in your app
         MapboxAccountManager.start(getContext(), getResources().getString(R.string.mapbox_api_key));
-
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(final LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_map, container, false);
 
         // This contains the MapView in XML and needs to be called after the account manager
-
         mapView = (MapView) rootView.findViewById(R.id.map_view);
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(new OnMapReadyCallback() {
             @Override
             public void onMapReady(MapboxMap mapboxMap) {
-
+                mapboxMap.setInfoWindowAdapter(new PhotoViewAdapter(inflater));
+                mapboxMap.addMarker(new MarkerViewOptions()
+                        .position(new LatLng(40.73581, -73.99155))
+                        .title("IMG_20160911_112007.jpg")
+                        .snippet("Description of the Marker"));
             }
         });
         return rootView;
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
+    @Override
+    public void onDestroyView(){
+        super.onDestroyView();
+        mapView.onDestroy();
     }
 
     @Override
