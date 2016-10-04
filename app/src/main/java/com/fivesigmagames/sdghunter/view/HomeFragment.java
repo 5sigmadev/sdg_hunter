@@ -204,7 +204,7 @@ public class HomeFragment extends Fragment {
      * >Communicating with Other Fragments</a> for more information.
      */
     public interface OnHomeFragmentInteractionListener {
-        // TODO: Update argument type and name
+
         void activateCamera();
     }
 }

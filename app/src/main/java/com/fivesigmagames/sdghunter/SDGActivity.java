@@ -14,13 +14,9 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
-import android.view.LayoutInflater;
+
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-
-import android.widget.TextView;
 
 import com.fivesigmagames.sdghunter.adapter.ShareItem;
 import com.fivesigmagames.sdghunter.view.AboutFragment;
@@ -35,6 +31,8 @@ import java.util.ArrayList;
 public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHomeFragmentInteractionListener,
         MapFragment.OnFragmentInteractionListener, ShareFragment.OnShareFragmentInteractionListener,
         AboutFragment.OnAboutFragmentInteractionListener {
+
+
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -127,7 +125,6 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
     private String getFragementTag(int position) {
         return "android:switcher:" + mViewPager.getId() + ":" + position;
     }
-
 
     /**
      * A {@link FragmentPagerAdapter} that returns a fragment corresponding to

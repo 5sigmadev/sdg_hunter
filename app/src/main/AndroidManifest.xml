@@ -29,6 +29,7 @@
             android:name=".SDGActivity"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar">
+            android:screenOrientation="portrait"
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -38,7 +39,9 @@
 
         <service android:name="com.mapbox.mapboxsdk.telemetry.TelemetryService" />
 
-        <activity android:name=".view.ShareActivity"></activity>
+        <activity
+            android:name=".view.ShareActivity"
+            android:screenOrientation="portrait" />
     </application>
 
 </manifest>
