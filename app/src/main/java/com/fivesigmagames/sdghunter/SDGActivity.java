@@ -181,10 +181,8 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
 
         if (file.isDirectory()) {
             File[] listFile = file.listFiles();
-            BitmapFactory.Options bmOptions = new BitmapFactory.Options();
             for (int i = 0; i < listFile.length; i++) {
-                Bitmap bitmap = BitmapFactory.decodeFile(listFile[i].getAbsolutePath(),bmOptions);
-                files.add(new ShareItem(bitmap, listFile[i].getName(), listFile[i].getAbsolutePath()));
+                files.add(new ShareItem(listFile[i].getName(), listFile[i].getAbsolutePath()));
             }
         }
         return files;

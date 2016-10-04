@@ -1,5 +1,7 @@
 package com.fivesigmagames.sdghunter.adapter;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -37,8 +39,10 @@ public class ShareGridAdapter extends RecyclerView.Adapter<ShareGridAdapter.View
 
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
+        BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+        Bitmap bitmap = BitmapFactory.decodeFile(mData.get(position).getFullPath(),bmOptions);
+        holder.image.setImageBitmap(bitmap);
         holder.imageTitle.setText(mData.get(position).getTitle());
-        holder.image.setImageBitmap(mData.get(position).getImage());
 
         holder.mView.setOnClickListener(new View.OnClickListener() {
             @Override

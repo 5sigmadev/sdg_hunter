@@ -9,23 +9,13 @@ import android.os.Parcelable;
  */
 
 public class ShareItem implements Parcelable {
-    private Bitmap image;
     private String title;
     private String fullPath;
 
-    public ShareItem(Bitmap image, String title, String fullPath) {
+    public ShareItem(String title, String fullPath) {
         super();
-        this.image = image;
         this.title = title;
         this.fullPath = fullPath;
-    }
-
-    public Bitmap getImage() {
-        return image;
-    }
-
-    public void setImage(Bitmap image) {
-        this.image = image;
     }
 
     public String getTitle() {
@@ -53,13 +43,11 @@ public class ShareItem implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel parcel, int i) {
-        parcel.writeParcelable(image, i);
         parcel.writeString(title);
         parcel.writeString(fullPath);
     }
 
     protected ShareItem(Parcel in) {
-        image = in.readParcelable(Bitmap.class.getClassLoader());
         title = in.readString();
         fullPath = in.readString();
     }
