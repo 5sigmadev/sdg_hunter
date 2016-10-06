@@ -97,6 +97,7 @@ public class MapFragment extends Fragment {
                     );
                 }
                 if(mShareItemList != null) {
+                    int i = 1;
                     for (ShareItem item : mShareItemList) {
                         String title = item.getFullPath();
                         if(title == null || title == ""){
@@ -113,6 +114,7 @@ public class MapFragment extends Fragment {
                         mMapboxMap.addMarker(new MarkerViewOptions()
                                 .position(new LatLng(item.getLatitude(), item.getLongitude()))
                                 .title(title));
+                        ++i;
                     }
                 }
             }
@@ -144,17 +146,20 @@ public class MapFragment extends Fragment {
     }
 
     public void updateMap(ArrayList<ShareItem> shareItemList, Location center){
-        if(mMapboxMap != null) {
-            if (center != null) {
-                mCenter = center;
+
+        if (center != null) {
+            mCenter = center;
+            if(mMapboxMap != null) {
                 mMapboxMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
                         new LatLng(mCenter.getLatitude(), mCenter.getLongitude()),
                         (float) mMapboxMap.getCameraPosition().zoom)
                 );
             }
-            if (shareItemList != null) {
+        }
+        if (shareItemList != null) {
+            mShareItemList = shareItemList;
+            if(mMapboxMap != null){
                 mMapboxMap.clear();
-                mShareItemList = shareItemList;
                 for (ShareItem item : mShareItemList) {
                     mMapboxMap.addMarker(new MarkerViewOptions()
                             .position(new LatLng(item.getLatitude(), item.getLongitude()))

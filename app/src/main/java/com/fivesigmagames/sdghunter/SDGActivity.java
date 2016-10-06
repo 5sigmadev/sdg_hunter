@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Environment;
@@ -37,7 +38,6 @@ import com.fivesigmagames.sdghunter.view.MapFragment;
 import com.fivesigmagames.sdghunter.view.PreviewActivity;
 import com.fivesigmagames.sdghunter.view.ShareActivity;
 import com.fivesigmagames.sdghunter.view.ShareFragment;
-import com.mapbox.mapboxsdk.geometry.LatLng;
 
 import java.io.File;
 import java.io.IOException;
@@ -59,7 +59,8 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
     private static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final int SHOW_PREVIEW_CAPTURE = 10;
     private static final int RESULT_PHOTO_RETAKE = 0;
-    private static final int RESULT_PHOTO_SHARE = 1; // Save not needed, saved by default
+    private static final int RESULT_PHOTO_SHARE = 1;
+    private static final int RESULT_PHOTO_SAVE = 2;
     private static final int TAKEN_DIR = 1;
     private static final int DOWNLOAD_DIR = 2;
     private static final int DISTANCE_THRESHOLD = 100;
@@ -90,6 +91,16 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
+
+        SharedPreferences prefs = getSharedPreferences("com.fivesigmagames.sdghunter", Context.MODE_PRIVATE);
+        if(!prefs.contains("firstUsage") || prefs.getBoolean("firstUsage", false)) {
+            this.buildHintAlertMessage();
+            SharedPreferences.Editor prefsEditor = prefs.edit();
+            prefsEditor.putBoolean("firstUsage", false);
+            prefsEditor.apply();
+            Log.d("SDG Hunter", "First usage hint shown");
+        }
+
     }
 
     @Override
@@ -101,17 +112,36 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the HomeFragment/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_hint) {
+            this.buildHintAlertMessage();
             return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void buildHintAlertMessage() {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("HINT");
+        builder.setMessage("Lorem impsum lorem mpsum, Lorem impsum lorem mpsumLorem impsum lorem " +
+                "mpsumLorem impsum lorem mpsumLorem impsum lorem mpsumLorem impsum lorem mpsumLorem " +
+                "impsum lorem mpsumLorem impsum lorem mpsumLorem impsum lorem mpsumLorem impsum lorem mpsum")
+                .setCancelable(false)
+                .setPositiveButton("Tell me more", new DialogInterface.OnClickListener() {
+                    public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                        mViewPager.setCurrentItem(3);
+                    }
+                })
+                .setNegativeButton("Got it!", new DialogInterface.OnClickListener() {
+                    public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                        dialog.cancel();
+                    }
+                });
+        final AlertDialog alert = builder.create();
+        alert.show();
     }
 
     @Override
@@ -232,10 +262,11 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
                 updateShareFragment(picPath);
                 startActivity(intent);
             }
-            else {
+            else if(resultCode == RESULT_PHOTO_SAVE){
                 String picPath = data.getExtras().getString("pic_path");
                 savePhotoEntryInDb(picPath);
                 updateShareFragment(picPath);
+                mViewPager.setCurrentItem(2);
             }
         }
     }
@@ -422,11 +453,12 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
         public void onReceive(Context context, Intent intent) {
             MapFragment fragment = (MapFragment) getSupportFragmentManager().findFragmentByTag(getFragementTag(1));
             if(fragment != null) {
+                ArrayList<ShareItem> shareItemList = null;
                 if (mCurrentLocation == null) {
                     mCurrentLocation = intent.getParcelableExtra("LOCATION");
+                    shareItemList = getSDGImages();
                 }
                 Location auxLocation = intent.getParcelableExtra("LOCATION");
-                ArrayList<ShareItem> shareItemList = null;
                 if (distanceBetween(auxLocation) >= DISTANCE_THRESHOLD) {
                     shareItemList = getSDGImages();
                 }
