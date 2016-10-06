@@ -37,6 +37,7 @@ import com.fivesigmagames.sdghunter.view.MapFragment;
 import com.fivesigmagames.sdghunter.view.PreviewActivity;
 import com.fivesigmagames.sdghunter.view.ShareActivity;
 import com.fivesigmagames.sdghunter.view.ShareFragment;
+import com.mapbox.mapboxsdk.geometry.LatLng;
 
 import java.io.File;
 import java.io.IOException;
@@ -53,12 +54,15 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
     // CONSTANTS
     private static final String SAVING_PICTURE_ERROR_MESSAGE = "Unexpected error when saving picture";
     private static final String DIRECTORY_CREATION_ERROR_MESSAGE = "Unxpected error when creating directory";
+    private static final String LOCATION_SERVICE_NOT_CONNECTED_ERROR_MESSAGE = "Unexpected error. Location services not connected yet. " +
+            "Try again in a few seconds";
     private static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final int SHOW_PREVIEW_CAPTURE = 10;
     private static final int RESULT_PHOTO_RETAKE = 0;
     private static final int RESULT_PHOTO_SHARE = 1; // Save not needed, saved by default
     private static final int TAKEN_DIR = 1;
     private static final int DOWNLOAD_DIR = 2;
+    private static final int DISTANCE_THRESHOLD = 100;
 
     // VARS
     private SectionsPagerAdapter mSectionsPagerAdapter;
@@ -225,15 +229,25 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
                 String picPath = extras.getString("pic_path");
                 intent.putExtra("pic_path", picPath);
                 savePhotoEntryInDb(picPath);
+                updateShareFragment(picPath);
                 startActivity(intent);
             }
             else {
-                savePhotoEntryInDb(data.getExtras().getString("pic_path"));
+                String picPath = data.getExtras().getString("pic_path");
+                savePhotoEntryInDb(picPath);
+                updateShareFragment(picPath);
             }
         }
     }
 
-    public static void deleteFileFromMediaStore(final ContentResolver contentResolver, final File file) {
+    private void updateShareFragment(String picPath){
+        ShareFragment fragment = (ShareFragment) getSupportFragmentManager().findFragmentByTag(getFragementTag(2));
+        if(fragment != null) {
+            fragment.updateSharedGrid(mShareItemRepository.findByName(picPath));
+        }
+    }
+
+    private static void deleteFileFromMediaStore(final ContentResolver contentResolver, final File file) {
         String canonicalPath;
         try {
             canonicalPath = file.getCanonicalPath();
@@ -253,9 +267,14 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
     }
 
     private void savePhotoEntryInDb(String picPath) {
-        String[] parts = picPath.split(File.separator);
-        mShareItemRepository.insert(new ShareItem(parts[parts.length-1], picPath,
-                mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()));
+        if(mCurrentLocation == null){
+            Toast.makeText(this, LOCATION_SERVICE_NOT_CONNECTED_ERROR_MESSAGE, Toast.LENGTH_LONG).show();
+        }
+        else {
+            String[] parts = picPath.split(File.separator);
+            mShareItemRepository.insert(new ShareItem(parts[parts.length - 1], picPath,
+                    mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()));
+        }
     }
 
     private void updateGallery(String picPath){
@@ -342,7 +361,7 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
                 case 0:
                     return HomeFragment.newInstance();
                 case 1:
-                    return MapFragment.newInstance();
+                    return MapFragment.newInstance(getSDGImages(), mCurrentLocation);
                 case 2:
                     return ShareFragment.newInstance(getSDGImages());
                 case 3:
@@ -401,9 +420,25 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            mCurrentLocation = intent.getParcelableExtra("LOCATION");
-            Log.d("SDG Activity","Current location: lat - " + mCurrentLocation.getLatitude() +
-                    " long -" + mCurrentLocation.getLongitude());
+            MapFragment fragment = (MapFragment) getSupportFragmentManager().findFragmentByTag(getFragementTag(1));
+            if(fragment != null) {
+                if (mCurrentLocation == null) {
+                    mCurrentLocation = intent.getParcelableExtra("LOCATION");
+                }
+                Location auxLocation = intent.getParcelableExtra("LOCATION");
+                ArrayList<ShareItem> shareItemList = null;
+                if (distanceBetween(auxLocation) >= DISTANCE_THRESHOLD) {
+                    shareItemList = getSDGImages();
+                }
+                mCurrentLocation = auxLocation;
+                fragment.updateMap(shareItemList, mCurrentLocation);
+                Log.d("SDG Activity", "Current location: lat - " + mCurrentLocation.getLatitude() +
+                        " long -" + mCurrentLocation.getLongitude());
+            }
         }
+    }
+
+    private double distanceBetween(Location point) {
+        return mCurrentLocation.distanceTo(point);
     }
 }

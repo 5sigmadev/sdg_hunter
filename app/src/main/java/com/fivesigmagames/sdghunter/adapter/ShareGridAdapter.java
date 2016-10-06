@@ -92,6 +92,11 @@ public class ShareGridAdapter extends RecyclerView.Adapter<ShareGridAdapter.View
         }
         return null;
     }
+
+    public void addItem(ShareItem item) {
+        this.mData.add(item);
+    }
+
     public class ViewHolder extends RecyclerView.ViewHolder {
         public final View mView;
         TextView imageTitle;
