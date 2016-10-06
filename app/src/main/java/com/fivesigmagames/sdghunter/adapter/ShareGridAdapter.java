@@ -10,6 +10,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.fivesigmagames.sdghunter.R;
+import com.fivesigmagames.sdghunter.model.ShareItem;
 import com.fivesigmagames.sdghunter.view.ShareFragment;
 
 import java.util.ArrayList;
@@ -20,6 +21,10 @@ import java.util.ArrayList;
 
 public class ShareGridAdapter extends RecyclerView.Adapter<ShareGridAdapter.ViewHolder> {
 
+    // CONSTANTS
+    private static final int WIDTH = 100;
+    private static final int HEIGHT = 100;
+    // VARS
     private ArrayList<ShareItem> mData = new ArrayList<ShareItem>();
 
 
@@ -39,10 +44,30 @@ public class ShareGridAdapter extends RecyclerView.Adapter<ShareGridAdapter.View
 
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
+
+        String fullPath = mData.get(position).getFullPath();
+
+        // Get the dimensions of the View
+        int targetW = WIDTH;
+        int targetH = HEIGHT;
+
+        // Get the dimensions of the bitmap
         BitmapFactory.Options bmOptions = new BitmapFactory.Options();
-        Bitmap bitmap = BitmapFactory.decodeFile(mData.get(position).getFullPath(),bmOptions);
+        bmOptions.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(fullPath, bmOptions);
+        int photoW = bmOptions.outWidth;
+        int photoH = bmOptions.outHeight;
+
+        // Determine how much to scale down the image
+        int scaleFactor = Math.min(photoW/targetW, photoH/targetH);
+
+        // Decode the image file into a Bitmap sized to fill the View
+        bmOptions.inJustDecodeBounds = false;
+        bmOptions.inSampleSize = scaleFactor;
+        bmOptions.inPurgeable = true;
+
+        Bitmap bitmap = BitmapFactory.decodeFile(fullPath, bmOptions);
         holder.image.setImageBitmap(bitmap);
-        holder.imageTitle.setText(mData.get(position).getTitle());
 
         holder.mView.setOnClickListener(new View.OnClickListener() {
             @Override

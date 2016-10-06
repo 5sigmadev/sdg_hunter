@@ -13,7 +13,7 @@ import android.widget.GridView;
 
 import com.fivesigmagames.sdghunter.R;
 import com.fivesigmagames.sdghunter.adapter.ShareGridAdapter;
-import com.fivesigmagames.sdghunter.adapter.ShareItem;
+import com.fivesigmagames.sdghunter.model.ShareItem;
 
 import java.util.ArrayList;
 
