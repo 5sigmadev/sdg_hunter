@@ -5,7 +5,9 @@ import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,6 +39,7 @@ import static android.os.Environment.getExternalStoragePublicDirectory;
 public class MapFragment extends Fragment {
 
     // CONSTANTS
+    private static final String TAG = "SDG [Map Fragment]";
     private static final String ARGS_PHOTOS = "photos";
     private static final String ARGS_CENTER = "center";
 
@@ -60,6 +63,7 @@ public class MapFragment extends Fragment {
         args.putParcelableArrayList(ARGS_PHOTOS, shareItemList);
         args.putParcelable(ARGS_CENTER, center);
         fragment.setArguments(args);
+        Log.d(TAG, "Fragment instantiated");
         return fragment;
     }
 
@@ -74,6 +78,10 @@ public class MapFragment extends Fragment {
         if (getArguments() != null) {
             mShareItemList = getArguments().getParcelableArrayList(ARGS_PHOTOS);
             mCenter = getArguments().getParcelable(ARGS_CENTER);
+            Log.d(TAG, "Fragment created with data");
+        }
+        else{
+            Log.d(TAG, "Fragment created without data");
         }
     }
 
@@ -97,29 +105,33 @@ public class MapFragment extends Fragment {
                     );
                 }
                 if(mShareItemList != null) {
-                    int i = 1;
                     for (ShareItem item : mShareItemList) {
-                        String title = item.getFullPath();
-                        if(title == null || title == ""){
-                            String sdgPictures = getResources().getString(R.string.sdg_pictures_path)
-                                    .concat(File.separator).concat(
-                                    getResources().getString(R.string.sdg_taken_pictures_path)
-                                    );
-                            title = getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-                                    .getAbsolutePath().concat(File.separator).concat(sdgPictures)
-                                    .concat(File.separator).concat(item.getTitle());
-
-
-                        }
+                        String title = getFullPathForTitle(item);
                         mMapboxMap.addMarker(new MarkerViewOptions()
                                 .position(new LatLng(item.getLatitude(), item.getLongitude()))
                                 .title(title));
-                        ++i;
                     }
                 }
             }
         });
         return rootView;
+    }
+
+    @NonNull
+    private String getFullPathForTitle(ShareItem item) {
+        String title = item.getFullPath();
+        if(title == null || title == ""){
+            String sdgPictures = getResources().getString(R.string.sdg_pictures_path)
+                    .concat(File.separator).concat(
+                    getResources().getString(R.string.sdg_taken_pictures_path)
+                    );
+            title = getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+                    .getAbsolutePath().concat(File.separator).concat(sdgPictures)
+                    .concat(File.separator).concat(item.getTitle());
+
+
+        }
+        return title;
     }
 
     @Override
@@ -161,10 +173,23 @@ public class MapFragment extends Fragment {
             if(mMapboxMap != null){
                 mMapboxMap.clear();
                 for (ShareItem item : mShareItemList) {
+                    String title = getFullPathForTitle(item);
                     mMapboxMap.addMarker(new MarkerViewOptions()
                             .position(new LatLng(item.getLatitude(), item.getLongitude()))
-                            .title(item.getTitle()));
+                            .title(title));
                 }
+            }
+        }
+    }
+
+    public void updateMap(ShareItem item){
+        if (mShareItemList != null) {
+            mShareItemList.add(item);
+            if(mMapboxMap != null){
+                String title = getFullPathForTitle(item);
+                mMapboxMap.addMarker(new MarkerViewOptions()
+                        .position(new LatLng(item.getLatitude(), item.getLongitude()))
+                        .title(title));
             }
         }
     }

@@ -52,6 +52,7 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
         AboutFragment.OnAboutFragmentInteractionListener {
 
     // CONSTANTS
+    private static final String TAG = "SDG [Main Activity]";
     private static final String SAVING_PICTURE_ERROR_MESSAGE = "Unexpected error when saving picture";
     private static final String DIRECTORY_CREATION_ERROR_MESSAGE = "Unxpected error when creating directory";
     private static final String LOCATION_SERVICE_NOT_CONNECTED_ERROR_MESSAGE = "Unexpected error. Location services not connected yet. " +
@@ -98,7 +99,7 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
             SharedPreferences.Editor prefsEditor = prefs.edit();
             prefsEditor.putBoolean("firstUsage", false);
             prefsEditor.apply();
-            Log.d("SDG Hunter", "First usage hint shown");
+            Log.d(TAG, "First usage hint shown");
         }
 
     }
@@ -132,6 +133,7 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
                 .setCancelable(false)
                 .setPositiveButton("Tell me more", new DialogInterface.OnClickListener() {
                     public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                        dialog.cancel();
                         mViewPager.setCurrentItem(3);
                     }
                 })
@@ -175,6 +177,7 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
                 .setCancelable(false)
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                        dialog.cancel();
                         startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
                     }
                 })
@@ -259,22 +262,61 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
                 String picPath = extras.getString("pic_path");
                 intent.putExtra("pic_path", picPath);
                 savePhotoEntryInDb(picPath);
-                updateShareFragment(picPath);
+                boolean wasShareFragmentCreated = updateShareFragment(picPath);
+                boolean wasMapFragmentCreated = updateMapFragment(getSDGImage(picPath));
                 startActivity(intent);
+                if(!wasShareFragmentCreated) {
+                    updateShareFragment(picPath);
+                }
+                if(!wasMapFragmentCreated) {
+                    updateMapFragment(getSDGImage(picPath));
+                }
             }
             else if(resultCode == RESULT_PHOTO_SAVE){
                 String picPath = data.getExtras().getString("pic_path");
                 savePhotoEntryInDb(picPath);
-                updateShareFragment(picPath);
+                boolean wasShareFragmentCreated = updateShareFragment(picPath);
+                boolean wasMapFragmentCreated = updateMapFragment(getSDGImage(picPath));
                 mViewPager.setCurrentItem(2);
+                if(!wasShareFragmentCreated) {
+                    updateShareFragment(picPath);
+                }
+                if(!wasMapFragmentCreated) {
+                    updateMapFragment(getSDGImage(picPath));
+                }
             }
         }
     }
 
-    private void updateShareFragment(String picPath){
+    private boolean updateMapFragment(ShareItem item) {
+        if(item != null) {
+            MapFragment fragment = (MapFragment) getSupportFragmentManager().findFragmentByTag(getFragementTag(1));
+            if (fragment != null) {
+                fragment.updateMap(item);
+                Log.d(TAG, " MapFragment updated with item " + item.getTitle());
+                return true;
+            }
+            else{
+                Log.d(TAG, "Map fragment not created yet");
+                return false;
+            }
+        }
+        else{
+            Log.d(TAG, "Item was null");
+            return false;
+        }
+    }
+
+    private boolean updateShareFragment(String picPath){
         ShareFragment fragment = (ShareFragment) getSupportFragmentManager().findFragmentByTag(getFragementTag(2));
         if(fragment != null) {
             fragment.updateSharedGrid(mShareItemRepository.findByName(picPath));
+            Log.d(TAG, " ShareFragement updated with item " + picPath);
+            return true;
+        }
+        else {
+            Log.d(TAG, "ShareFragment not created yet. Impossible to update");
+            return false;
         }
     }
 
@@ -440,11 +482,24 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
                     files.add(item);
                 }
                 else {
-                    Log.e("SDG Hunter", "An entry in the db should exist for " + listFile[i].getName());
+                    Log.e(TAG, "An entry in the db should exist for " + listFile[i].getName());
                 }
             }
         }
         return files;
+    }
+
+    private ShareItem getSDGImage(String picPath) {
+        String[] parts = picPath.split(File.separator);
+        ShareItem item = mShareItemRepository.findByName(parts[parts.length-1]);
+        if(item != null){
+            item.setFullPath(picPath);
+            return item;
+        }
+        else {
+            Log.e(TAG, "An entry in the db should exist for " + parts[parts.length-1]);
+            return null;
+        }
     }
 
     private class LocationReceiver extends BroadcastReceiver {
@@ -464,7 +519,7 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
                 }
                 mCurrentLocation = auxLocation;
                 fragment.updateMap(shareItemList, mCurrentLocation);
-                Log.d("SDG Activity", "Current location: lat - " + mCurrentLocation.getLatitude() +
+                Log.d(TAG, "Current location: lat - " + mCurrentLocation.getLatitude() +
                         " long -" + mCurrentLocation.getLongitude());
             }
         }

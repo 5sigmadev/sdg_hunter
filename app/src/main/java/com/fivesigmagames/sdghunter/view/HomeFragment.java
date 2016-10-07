@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,6 +32,7 @@ import com.fivesigmagames.sdghunter.R;
 public class HomeFragment extends Fragment {
 
     //CONSTANTS
+    private static final String TAG = "SDG [Home Fragment]";
     private static final String SDG_HUNTER = "SDG Hunter";
     private static final float IMAGE_SCALE_RATIO = 0.2f;
     private static final float YELLOW_MON_ROTATION = 30;
@@ -67,6 +69,7 @@ public class HomeFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "Fragment instantiated");
 
     }
 

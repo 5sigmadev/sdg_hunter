@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.fivesigmagames.sdghunter.R;
 import com.fivesigmagames.sdghunter.model.ShareItem;
@@ -24,6 +25,7 @@ public class ShareGridAdapter extends RecyclerView.Adapter<ShareGridAdapter.View
     // CONSTANTS
     private static final int WIDTH = 100;
     private static final int HEIGHT = 100;
+    private static final String DATA_NOT_UPDATED_ERROR_MESSAGE = "The server is slowly responding. Please try again in a few seconds";
     // VARS
     private ArrayList<ShareItem> mData = new ArrayList<ShareItem>();
 
@@ -45,40 +47,45 @@ public class ShareGridAdapter extends RecyclerView.Adapter<ShareGridAdapter.View
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
 
-        String fullPath = mData.get(position).getFullPath();
+        if(mData.get(position) != null) {
+            String fullPath = mData.get(position).getFullPath();
 
-        // Get the dimensions of the View
-        int targetW = WIDTH;
-        int targetH = HEIGHT;
+            // Get the dimensions of the View
+            int targetW = WIDTH;
+            int targetH = HEIGHT;
 
-        // Get the dimensions of the bitmap
-        BitmapFactory.Options bmOptions = new BitmapFactory.Options();
-        bmOptions.inJustDecodeBounds = true;
-        BitmapFactory.decodeFile(fullPath, bmOptions);
-        int photoW = bmOptions.outWidth;
-        int photoH = bmOptions.outHeight;
+            // Get the dimensions of the bitmap
+            BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+            bmOptions.inJustDecodeBounds = true;
+            BitmapFactory.decodeFile(fullPath, bmOptions);
+            int photoW = bmOptions.outWidth;
+            int photoH = bmOptions.outHeight;
 
-        // Determine how much to scale down the image
-        int scaleFactor = Math.min(photoW/targetW, photoH/targetH);
+            // Determine how much to scale down the image
+            int scaleFactor = Math.min(photoW / targetW, photoH / targetH);
 
-        // Decode the image file into a Bitmap sized to fill the View
-        bmOptions.inJustDecodeBounds = false;
-        bmOptions.inSampleSize = scaleFactor;
-        bmOptions.inPurgeable = true;
+            // Decode the image file into a Bitmap sized to fill the View
+            bmOptions.inJustDecodeBounds = false;
+            bmOptions.inSampleSize = scaleFactor;
+            bmOptions.inPurgeable = true;
 
-        Bitmap bitmap = BitmapFactory.decodeFile(fullPath, bmOptions);
-        holder.image.setImageBitmap(bitmap);
+            Bitmap bitmap = BitmapFactory.decodeFile(fullPath, bmOptions);
+            holder.image.setImageBitmap(bitmap);
 
-        holder.mView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (null != mListener) {
-                    // Notify the active callbacks interface (the activity, if the
-                    // fragment is attached to one) that an item has been selected.
-                    mListener.sharePicture(holder.getAdapterPosition());
+            holder.mView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (null != mListener) {
+                        // Notify the active callbacks interface (the activity, if the
+                        // fragment is attached to one) that an item has been selected.
+                        mListener.sharePicture(holder.getAdapterPosition());
+                    }
                 }
-            }
-        });
+            });
+        }
+        else {
+            holder.mView.setVisibility(View.INVISIBLE);
+        }
     }
 
     @Override

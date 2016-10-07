@@ -6,6 +6,7 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,6 +29,7 @@ import java.util.ArrayList;
 public class ShareFragment extends Fragment {
 
     //CONSTANTS
+    private static final String TAG = "SDG [Share Fragment]";
     private static final String ARGS_PHOTOS = "photos";
     private static final int GRID_SPAN_COUNT_PORTRAIT = 3;
 
@@ -50,6 +52,7 @@ public class ShareFragment extends Fragment {
         Bundle args = new Bundle();
         args.putParcelableArrayList(ARGS_PHOTOS, shareItemList);
         fragment.setArguments(args);
+        Log.d(TAG, "Fragment instantiated");
         return fragment;
     }
 
@@ -59,6 +62,10 @@ public class ShareFragment extends Fragment {
 
         if (getArguments() != null) {
             mShareItemList = getArguments().getParcelableArrayList(ARGS_PHOTOS);
+            Log.d(TAG, "Fragment created with data");
+        }
+        else{
+            Log.d(TAG, "Fragment created without data");
         }
     }
 
