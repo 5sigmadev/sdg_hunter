@@ -6,6 +6,7 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,11 +29,11 @@ import java.util.ArrayList;
 public class ShareFragment extends Fragment {
 
     //CONSTANTS
+    private static final String TAG = "SDG [Share Fragment]";
     private static final String ARGS_PHOTOS = "photos";
     private static final int GRID_SPAN_COUNT_PORTRAIT = 3;
 
     //VARS
-    private GridView gridView;
     private ShareGridAdapter gridAdapter;
     private ArrayList<ShareItem> mShareItemList = new ArrayList<>();
 
@@ -50,6 +51,7 @@ public class ShareFragment extends Fragment {
         Bundle args = new Bundle();
         args.putParcelableArrayList(ARGS_PHOTOS, shareItemList);
         fragment.setArguments(args);
+        Log.d(TAG, "Fragment instantiated");
         return fragment;
     }
 
@@ -59,6 +61,10 @@ public class ShareFragment extends Fragment {
 
         if (getArguments() != null) {
             mShareItemList = getArguments().getParcelableArrayList(ARGS_PHOTOS);
+            Log.d(TAG, "Fragment created with data");
+        }
+        else{
+            Log.d(TAG, "Fragment created without data");
         }
     }
 
@@ -105,16 +111,11 @@ public class ShareFragment extends Fragment {
          return this.gridAdapter.getItemAt(position);
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
+    public void updateSharedGrid(ShareItem item){
+        this.gridAdapter.addItem(item);
+        this.gridAdapter.notifyDataSetChanged();
+    }
+
     public interface OnShareFragmentInteractionListener {
         void sharePicture(int position);
     }

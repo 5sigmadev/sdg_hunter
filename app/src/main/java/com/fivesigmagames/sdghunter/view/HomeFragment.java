@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,6 +32,7 @@ import com.fivesigmagames.sdghunter.R;
 public class HomeFragment extends Fragment {
 
     //CONSTANTS
+    private static final String TAG = "SDG [Home Fragment]";
     private static final String SDG_HUNTER = "SDG Hunter";
     private static final float IMAGE_SCALE_RATIO = 0.2f;
     private static final float YELLOW_MON_ROTATION = 30;
@@ -67,6 +69,7 @@ public class HomeFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "Fragment instantiated");
 
     }
 
@@ -88,33 +91,7 @@ public class HomeFragment extends Fragment {
         int screenWidth = screenSize[0];
         int screenHeight = screenSize[1];
 
-        /*
-        // Yellow monster top image
-        Bitmap yellow_monster_on_bg = BitmapFactory.decodeResource(getContext().getResources(),
-                                                                    R.drawable.yellow_monster_on_bg);
-        Matrix matrix = getMatrix(IMAGE_SCALE_RATIO, IMAGE_SCALE_RATIO, YELLOW_MON_ROTATION);
-        BitmapDrawable bmd = getBitmapDrawable(screenWidth, yellow_monster_on_bg, matrix);
-        // set the Drawable on the ImageView
-        iv_yellow_mon_img.setImageDrawable(bmd);
-        iv_yellow_mon_img.setScaleType(ImageView.ScaleType.CENTER);
 
-        // Green monster top image
-        Bitmap green_monster_on_bg = BitmapFactory.decodeResource(getContext().getResources(),
-                                                                    R.drawable.green_monster_on_bg);
-        matrix = getMatrix(IMAGE_SCALE_RATIO, IMAGE_SCALE_RATIO, GREEN_MON_ROTATION);
-        bmd = getBitmapDrawable(screenWidth, green_monster_on_bg, matrix);
-        // set the Drawable on the ImageView
-        iv_green_mon_img.setImageDrawable(bmd);
-        iv_green_mon_img.setScaleType(ImageView.ScaleType.CENTER);
-
-        // Red monster top image
-        Bitmap red_monster_on_bg = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.red_monster_on_bg);
-        matrix = getMatrix(IMAGE_SCALE_RATIO, IMAGE_SCALE_RATIO, RED_MON_ROTATION);
-        bmd = getBitmapDrawable(screenWidth, red_monster_on_bg, matrix);
-        // set the Drawable on the ImageView
-        iv_red_mon_img.setImageDrawable(bmd);
-        iv_red_mon_img.setScaleType(ImageView.ScaleType.CENTER);
-        */
 
         // Cam button
 

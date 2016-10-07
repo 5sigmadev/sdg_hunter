@@ -15,6 +15,7 @@ import com.fivesigmagames.sdghunter.model.repository.ShareItemContract.ShareItem
 public class ShareItemRepository {
 
     //CONSTANTS
+    private static final String TAG = "SDG [ShareItemRepos]";
     private static final String UNIQUE_CONSTRAINT = " UNIQUE";
     private static final String TEXT_TYPE = " TEXT";
     private static final String REAL_TYPE = " REAL";
@@ -95,10 +96,10 @@ public class ShareItemRepository {
             return new ShareItem(_id, title, null, latitude, longitude);
         }
         else if(resultCount > 1){
-            Log.e("SDG Hunter", "Error querying, more than one result matching title ");
+            Log.e(TAG, "Error querying, more than one result matching title ");
         }
         else {
-            Log.d("SDG Hunter", "Photo title not found in db");
+            Log.d(TAG, "Photo title not found in db");
         }
         return null;
     }

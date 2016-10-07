@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Environment;
@@ -26,6 +27,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Toast;
 
 import com.fivesigmagames.sdghunter.model.ShareItem;
@@ -51,14 +53,19 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
         AboutFragment.OnAboutFragmentInteractionListener {
 
     // CONSTANTS
+    private static final String TAG = "SDG [Main Activity]";
     private static final String SAVING_PICTURE_ERROR_MESSAGE = "Unexpected error when saving picture";
     private static final String DIRECTORY_CREATION_ERROR_MESSAGE = "Unxpected error when creating directory";
+    private static final String LOCATION_SERVICE_NOT_CONNECTED_ERROR_MESSAGE = "Unexpected error. Location services not connected yet. " +
+            "Try again in a few seconds";
     private static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final int SHOW_PREVIEW_CAPTURE = 10;
     private static final int RESULT_PHOTO_RETAKE = 0;
-    private static final int RESULT_PHOTO_SHARE = 1; // Save not needed, saved by default
+    private static final int RESULT_PHOTO_SHARE = 1;
+    private static final int RESULT_PHOTO_SAVE = 2;
     private static final int TAKEN_DIR = 1;
     private static final int DOWNLOAD_DIR = 2;
+    private static final int DISTANCE_THRESHOLD = 100;
 
     // VARS
     private SectionsPagerAdapter mSectionsPagerAdapter;
@@ -86,6 +93,16 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
+
+        SharedPreferences prefs = getSharedPreferences("com.fivesigmagames.sdghunter", Context.MODE_PRIVATE);
+        if(!prefs.contains("firstUsage") || prefs.getBoolean("firstUsage", false)) {
+            this.buildHintAlertMessage();
+            SharedPreferences.Editor prefsEditor = prefs.edit();
+            prefsEditor.putBoolean("firstUsage", false);
+            prefsEditor.apply();
+            Log.d(TAG, "First usage hint shown");
+        }
+
     }
 
     @Override
@@ -97,17 +114,37 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the HomeFragment/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_hint) {
+            this.buildHintAlertMessage();
             return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void buildHintAlertMessage() {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("HINT");
+        builder.setMessage("Lorem impsum lorem mpsum, Lorem impsum lorem mpsumLorem impsum lorem " +
+                "mpsumLorem impsum lorem mpsumLorem impsum lorem mpsumLorem impsum lorem mpsumLorem " +
+                "impsum lorem mpsumLorem impsum lorem mpsumLorem impsum lorem mpsumLorem impsum lorem mpsum")
+                .setCancelable(false)
+                .setPositiveButton("Tell me more", new DialogInterface.OnClickListener() {
+                    public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                        dialog.cancel();
+                        mViewPager.setCurrentItem(3);
+                    }
+                })
+                .setNegativeButton("Got it!", new DialogInterface.OnClickListener() {
+                    public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                        dialog.cancel();
+                    }
+                });
+        final AlertDialog alert = builder.create();
+        alert.show();
     }
 
     @Override
@@ -141,6 +178,7 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
                 .setCancelable(false)
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                        dialog.cancel();
                         startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
                     }
                 })
@@ -195,7 +233,6 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
                     takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
                     startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
                 } else {
-
                     Toast.makeText(this, DIRECTORY_CREATION_ERROR_MESSAGE, Toast.LENGTH_LONG).show();
                 }
 
@@ -225,15 +262,56 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
                 String picPath = extras.getString("pic_path");
                 intent.putExtra("pic_path", picPath);
                 savePhotoEntryInDb(picPath);
+                updateShareFragment(picPath);
+                updateMapFragment(getSDGImage(picPath));
                 startActivity(intent);
             }
-            else {
-                savePhotoEntryInDb(data.getExtras().getString("pic_path"));
+            else if(resultCode == RESULT_PHOTO_SAVE){
+                String picPath = data.getExtras().getString("pic_path");
+                savePhotoEntryInDb(picPath);
+                updateShareFragment(picPath);
+                updateMapFragment(getSDGImage(picPath));
+                mViewPager.setCurrentItem(2);
             }
         }
     }
 
-    public static void deleteFileFromMediaStore(final ContentResolver contentResolver, final File file) {
+    private boolean updateMapFragment(ShareItem item) {
+        if(item != null) {
+            MapFragment fragment = (MapFragment) getSupportFragmentManager().findFragmentByTag(getFragementTag(1));
+            if (fragment != null) {
+                fragment.updateMap(item);
+                Log.d(TAG, " MapFragment updated with item " + item.getTitle());
+                return true;
+            }
+            else{
+                Log.d(TAG, "Map fragment not created yet");
+                return false;
+            }
+        }
+        else{
+            Log.d(TAG, "Item was null");
+            return false;
+        }
+    }
+
+    private boolean updateShareFragment(String picPath){
+        ShareFragment fragment = (ShareFragment) getSupportFragmentManager().findFragmentByTag(getFragementTag(2));
+        if(fragment != null) {
+            String[] parts = picPath.split(File.separator);
+            ShareItem item = mShareItemRepository.findByName(parts[parts.length - 1]);
+            item.setFullPath(picPath);
+            fragment.updateSharedGrid(item);
+            Log.d(TAG, " ShareFragement updated with item " + picPath);
+            return true;
+        }
+        else {
+            Log.d(TAG, "ShareFragment not created yet. Impossible to update");
+            return false;
+        }
+    }
+
+    private static void deleteFileFromMediaStore(final ContentResolver contentResolver, final File file) {
         String canonicalPath;
         try {
             canonicalPath = file.getCanonicalPath();
@@ -253,9 +331,14 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
     }
 
     private void savePhotoEntryInDb(String picPath) {
-        String[] parts = picPath.split(File.separator);
-        mShareItemRepository.insert(new ShareItem(parts[parts.length-1], picPath,
-                mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()));
+        if(mCurrentLocation == null){
+            Toast.makeText(this, LOCATION_SERVICE_NOT_CONNECTED_ERROR_MESSAGE, Toast.LENGTH_LONG).show();
+        }
+        else {
+            String[] parts = picPath.split(File.separator);
+            mShareItemRepository.insert(new ShareItem(parts[parts.length - 1], picPath,
+                    mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()));
+        }
     }
 
     private void updateGallery(String picPath){
@@ -342,7 +425,7 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
                 case 0:
                     return HomeFragment.newInstance();
                 case 1:
-                    return MapFragment.newInstance();
+                    return MapFragment.newInstance(getSDGImages(), mCurrentLocation);
                 case 2:
                     return ShareFragment.newInstance(getSDGImages());
                 case 3:
@@ -390,20 +473,50 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
                     files.add(item);
                 }
                 else {
-                    Log.e("SDG Hunter", "An entry in the db should exist for " + listFile[i].getName());
+                    Log.e(TAG, "An entry in the db should exist for " + listFile[i].getName());
                 }
             }
         }
         return files;
     }
 
+    private ShareItem getSDGImage(String picPath) {
+        String[] parts = picPath.split(File.separator);
+        ShareItem item = mShareItemRepository.findByName(parts[parts.length-1]);
+        if(item != null){
+            item.setFullPath(picPath);
+            return item;
+        }
+        else {
+            Log.e(TAG, "An entry in the db should exist for " + parts[parts.length-1]);
+            return null;
+        }
+    }
+
     private class LocationReceiver extends BroadcastReceiver {
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            mCurrentLocation = intent.getParcelableExtra("LOCATION");
-            Log.d("SDG Activity","Current location: lat - " + mCurrentLocation.getLatitude() +
-                    " long -" + mCurrentLocation.getLongitude());
+            MapFragment fragment = (MapFragment) getSupportFragmentManager().findFragmentByTag(getFragementTag(1));
+            if(fragment != null) {
+                ArrayList<ShareItem> shareItemList = null;
+                if (mCurrentLocation == null) {
+                    mCurrentLocation = intent.getParcelableExtra("LOCATION");
+                    shareItemList = getSDGImages();
+                }
+                Location auxLocation = intent.getParcelableExtra("LOCATION");
+                if (distanceBetween(auxLocation) >= DISTANCE_THRESHOLD) {
+                    shareItemList = getSDGImages();
+                }
+                mCurrentLocation = auxLocation;
+                fragment.updateMap(shareItemList, mCurrentLocation);
+                Log.d(TAG, "Current location: lat - " + mCurrentLocation.getLatitude() +
+                        " long -" + mCurrentLocation.getLongitude());
+            }
         }
+    }
+
+    private double distanceBetween(Location point) {
+        return mCurrentLocation.distanceTo(point);
     }
 }
