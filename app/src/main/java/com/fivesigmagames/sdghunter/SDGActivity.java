@@ -27,6 +27,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Toast;
 
 import com.fivesigmagames.sdghunter.model.ShareItem;
@@ -232,7 +233,6 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
                     takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
                     startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
                 } else {
-
                     Toast.makeText(this, DIRECTORY_CREATION_ERROR_MESSAGE, Toast.LENGTH_LONG).show();
                 }
 
@@ -262,28 +262,16 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
                 String picPath = extras.getString("pic_path");
                 intent.putExtra("pic_path", picPath);
                 savePhotoEntryInDb(picPath);
-                boolean wasShareFragmentCreated = updateShareFragment(picPath);
-                boolean wasMapFragmentCreated = updateMapFragment(getSDGImage(picPath));
+                updateShareFragment(picPath);
+                updateMapFragment(getSDGImage(picPath));
                 startActivity(intent);
-                if(!wasShareFragmentCreated) {
-                    updateShareFragment(picPath);
-                }
-                if(!wasMapFragmentCreated) {
-                    updateMapFragment(getSDGImage(picPath));
-                }
             }
             else if(resultCode == RESULT_PHOTO_SAVE){
                 String picPath = data.getExtras().getString("pic_path");
                 savePhotoEntryInDb(picPath);
-                boolean wasShareFragmentCreated = updateShareFragment(picPath);
-                boolean wasMapFragmentCreated = updateMapFragment(getSDGImage(picPath));
+                updateShareFragment(picPath);
+                updateMapFragment(getSDGImage(picPath));
                 mViewPager.setCurrentItem(2);
-                if(!wasShareFragmentCreated) {
-                    updateShareFragment(picPath);
-                }
-                if(!wasMapFragmentCreated) {
-                    updateMapFragment(getSDGImage(picPath));
-                }
             }
         }
     }
@@ -310,7 +298,10 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
     private boolean updateShareFragment(String picPath){
         ShareFragment fragment = (ShareFragment) getSupportFragmentManager().findFragmentByTag(getFragementTag(2));
         if(fragment != null) {
-            fragment.updateSharedGrid(mShareItemRepository.findByName(picPath));
+            String[] parts = picPath.split(File.separator);
+            ShareItem item = mShareItemRepository.findByName(parts[parts.length - 1]);
+            item.setFullPath(picPath);
+            fragment.updateSharedGrid(item);
             Log.d(TAG, " ShareFragement updated with item " + picPath);
             return true;
         }

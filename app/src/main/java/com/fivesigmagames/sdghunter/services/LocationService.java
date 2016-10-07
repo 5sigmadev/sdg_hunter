@@ -22,7 +22,7 @@ public class LocationService extends Service implements com.google.android.gms.l
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener  {
 
     public final static String LOCATION_UPDATE = "LOCATION UPDATE";
-    private static final String TAG = "SDG LOCATION SERVICE";
+    private static final String TAG = "SDG [Location Service]";
     private IBinder mBinder;
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
@@ -102,7 +102,7 @@ public class LocationService extends Service implements com.google.android.gms.l
 
     @Override
     public void onLocationChanged(Location location) {
-        Log.d(TAG, "new location update");
+        Log.d(TAG, "New location update");
         Intent intent = new Intent();
         intent.setAction(LOCATION_UPDATE);
         intent.putExtra("LOCATION", location);

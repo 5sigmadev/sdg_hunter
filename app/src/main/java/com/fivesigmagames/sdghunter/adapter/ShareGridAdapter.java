@@ -3,6 +3,7 @@ package com.fivesigmagames.sdghunter.adapter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,6 +27,7 @@ public class ShareGridAdapter extends RecyclerView.Adapter<ShareGridAdapter.View
     private static final int WIDTH = 100;
     private static final int HEIGHT = 100;
     private static final String DATA_NOT_UPDATED_ERROR_MESSAGE = "The server is slowly responding. Please try again in a few seconds";
+    private static final String TAG = "SDG [ShareGridAdapter]";
     // VARS
     private ArrayList<ShareItem> mData = new ArrayList<ShareItem>();
 
@@ -101,7 +103,12 @@ public class ShareGridAdapter extends RecyclerView.Adapter<ShareGridAdapter.View
     }
 
     public void addItem(ShareItem item) {
-        this.mData.add(item);
+        if(item != null) {
+            this.mData.add(item);
+        }
+        else{
+            Log.d(TAG, "Not adding null item to grid view data list");
+        }
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {

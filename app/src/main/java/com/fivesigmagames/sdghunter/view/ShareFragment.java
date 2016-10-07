@@ -34,7 +34,6 @@ public class ShareFragment extends Fragment {
     private static final int GRID_SPAN_COUNT_PORTRAIT = 3;
 
     //VARS
-    private GridView gridView;
     private ShareGridAdapter gridAdapter;
     private ArrayList<ShareItem> mShareItemList = new ArrayList<>();
 
