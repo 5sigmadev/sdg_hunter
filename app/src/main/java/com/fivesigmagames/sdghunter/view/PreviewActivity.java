@@ -18,6 +18,8 @@ public class PreviewActivity extends AppCompatActivity {
     private static final int RESULT_PHOTO_RETAKE = 0;
     private static final int RESULT_PHOTO_SHARE = 1;
     private static final int RESULT_PHOTO_SAVE = 2;
+    private static final int WIDTH = 300;
+    private static final int HEIGHT = 300;
 
     // VARS
     private String mCurrentFilePath;
@@ -29,9 +31,27 @@ public class PreviewActivity extends AppCompatActivity {
 
         mCurrentFilePath = (String) getIntent().getExtras().get("pic_path");
         BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+        // Get the dimensions of the View
+        int targetW = WIDTH;
+        int targetH = HEIGHT;
+
+        // Get the dimensions of the bitmap
+        bmOptions.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(mCurrentFilePath, bmOptions);
+        int photoW = bmOptions.outWidth;
+        int photoH = bmOptions.outHeight;
+
+        // Determine how much to scale down the image
+        int scaleFactor = Math.min(photoW / targetW, photoH / targetH);
+
+        // Decode the image file into a Bitmap sized to fill the View
+        bmOptions.inJustDecodeBounds = false;
+        bmOptions.inSampleSize = scaleFactor;
+        bmOptions.inPurgeable = true;
+
         Bitmap bitmap = BitmapFactory.decodeFile(mCurrentFilePath,bmOptions);
         ImageView imagePreview = (ImageView) findViewById(R.id.preview_image);
-        imagePreview.setImageBitmap(bitmap);
+        imagePreview.setImageBitmap(BitmapUtils.rotateImage(bitmap, BitmapUtils.getRotationAngle(mCurrentFilePath)));
 
         Button retakeBtn = (Button) findViewById(R.id.btn_preview_retake);
         retakeBtn.setOnClickListener(new View.OnClickListener() {
