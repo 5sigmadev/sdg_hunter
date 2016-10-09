@@ -36,7 +36,12 @@ public class ShareGridAdapter extends RecyclerView.Adapter<ShareGridAdapter.View
     private final ShareFragment.OnShareFragmentInteractionListener mListener;
 
     public ShareGridAdapter(ArrayList data, ShareFragment.OnShareFragmentInteractionListener listener) {
-        mData = data;
+        if(data != null) {
+            mData = data;
+        }
+        else{
+            mData = new ArrayList<>();
+        }
         mListener = listener;
     }
 
