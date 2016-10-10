@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -20,6 +21,7 @@ public class PreviewActivity extends AppCompatActivity {
     private static final int RESULT_PHOTO_SAVE = 2;
     private static final int WIDTH = 300;
     private static final int HEIGHT = 300;
+    private static final String TAG = "SDG [Preview Activity]";
 
     // VARS
     private String mCurrentFilePath;
@@ -51,7 +53,13 @@ public class PreviewActivity extends AppCompatActivity {
 
         Bitmap bitmap = BitmapFactory.decodeFile(mCurrentFilePath,bmOptions);
         ImageView imagePreview = (ImageView) findViewById(R.id.preview_image);
-        imagePreview.setImageBitmap(BitmapUtils.rotateImage(bitmap, BitmapUtils.getRotationAngle(mCurrentFilePath)));
+        Log.d(TAG, "Loading preview of " + mCurrentFilePath);
+        if(bitmap != null) {
+            imagePreview.setImageBitmap(BitmapUtils.rotateImage(bitmap, BitmapUtils.getRotationAngle(mCurrentFilePath)));
+        }
+        else{
+            Log.d(TAG, "Error loading " + mCurrentFilePath + ". Bitmap was null");
+        }
 
         Button retakeBtn = (Button) findViewById(R.id.btn_preview_retake);
         retakeBtn.setOnClickListener(new View.OnClickListener() {
