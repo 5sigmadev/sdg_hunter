@@ -1,11 +1,9 @@
 package com.fivesigmagames.sdghunter.view.ar;
 
-import com.fivesigmagames.sdghunter.R;
 import com.unity3d.player.*;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.res.Configuration;
-import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 import android.net.Uri;
 import android.os.Bundle;
@@ -13,53 +11,40 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
-import android.view.View;
 import android.view.Window;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
 
 import static android.os.Environment.getExternalStorageDirectory;
 
 public class UnityPlayerActivity extends Activity {
 
-    // CONSTANTS
-    private static final int RESULT_PHOTO_TAKEN = 4;
-    private static final String PICTURE = "PICTURE";
-    private static final String TAG = "SDG [Unity Camera]";
+	// CONSTANTS
+	private static final int RESULT_PHOTO_TAKEN = 4;
+	private static final String PICTURE = "PICTURE";
+	private static final String TAG = "SDG [Unity Camera]";
 
-    // VARS
+	// VARS
 	protected UnityPlayer mUnityPlayer; // don't change the name of this variable; referenced from native code
-    private Uri mUri;
-    private boolean mUsed = false;
-
+	private Uri mUri;
+	private boolean mUsed = false;
 
 	// Setup activity layout
 	@Override protected void onCreate (Bundle savedInstanceState)
 	{
-        mUri = getIntent().getExtras().getParcelable(MediaStore.EXTRA_OUTPUT);
+		mUri = getIntent().getExtras().getParcelable(MediaStore.EXTRA_OUTPUT);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		super.onCreate(savedInstanceState);
+
 		getWindow().setFormat(PixelFormat.RGBX_8888); // <--- This makes xperia play happy
 
 		mUnityPlayer = new UnityPlayer(this);
-        mUnityPlayer.getView().setBackgroundColor(getResources().getColor(R.color.white));
 		setContentView(mUnityPlayer);
 		mUnityPlayer.requestFocus();
-        mUnityPlayer.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
-                finish(RESULT_PHOTO_TAKEN);
-                return true;
-            }
-        });
 	}
 
 	// Quit Unity
 	@Override protected void onDestroy ()
 	{
+		finish(RESULT_PHOTO_TAKEN);
 		mUnityPlayer.quit();
 		super.onDestroy();
 	}
@@ -107,48 +92,20 @@ public class UnityPlayerActivity extends Activity {
 	@Override public boolean onTouchEvent(MotionEvent event)          { return mUnityPlayer.injectEvent(event); }
 	/*API12*/ public boolean onGenericMotionEvent(MotionEvent event)  { return mUnityPlayer.injectEvent(event); }
 
-
-    public void finish(int resultCode) {
-        savePictureFromBitmap();
-        Activity mParent = getParent();
-        Intent returnIntent = new Intent();
-        if (mParent == null) {
-            setResult(resultCode, returnIntent);
-            finish();
-        } else {
-            mParent.setResult(resultCode, returnIntent);
-            mParent.finishFromChild(this);
-        }
+    public String getCurrentPhotoPath(){
+        Log.d(TAG, "getCurrentPhotoPath called from Unity");
+        return getExternalStorageDirectory().getAbsolutePath().concat(mUri.getPath());
     }
 
-    // Unity Player Camera
-    public void savePictureFromBitmap() {
-        mUnityPlayer.setDrawingCacheEnabled(true);
-        mUnityPlayer.buildDrawingCache(true);
-        Bitmap picture = Bitmap.createBitmap(mUnityPlayer.getDrawingCache());
-        File imageFile = new File(getExternalStorageDirectory(), mUri.getPath());
-
-        FileOutputStream outputStream = null;
-        try {
-            outputStream = new FileOutputStream(imageFile);
-            int quality = 40;
-            picture.compress(Bitmap.CompressFormat.PNG, quality, outputStream);
-            outputStream.flush();
-            outputStream.close();
-        } catch (FileNotFoundException e) {
-            Log.d(TAG, "Error saving file. File: " + imageFile.getAbsolutePath() + " not found.");
-        } catch (IOException e) {
-            Log.d(TAG, "Error saving file. Unexpected IO error");
-        } finally {
-            if (outputStream != null) {
-                try {
-                    outputStream.close();
-                } catch (IOException e) {
-                    Log.d(TAG, "Error saving file. Unexpected IO error");
-                }
-            }
-        }
-        mUnityPlayer.setDrawingCacheEnabled(false);
-        Log.d(TAG, "File  " + imageFile.getAbsolutePath() + " saved");
-    }
+	public void finish(int resultCode) {
+		Activity mParent = getParent();
+		Intent returnIntent = new Intent();
+		if (mParent == null) {
+			setResult(resultCode, returnIntent);
+			finish();
+		} else {
+			mParent.setResult(resultCode, returnIntent);
+			mParent.finishFromChild(this);
+		}
+	}
 }
