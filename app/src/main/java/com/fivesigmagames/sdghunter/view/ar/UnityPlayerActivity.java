@@ -24,13 +24,12 @@ public class UnityPlayerActivity extends Activity {
 
 	// VARS
 	protected UnityPlayer mUnityPlayer; // don't change the name of this variable; referenced from native code
-	private Uri mUri;
+	private String mNewFilePath;
 	private boolean mUsed = false;
 
 	// Setup activity layout
 	@Override protected void onCreate (Bundle savedInstanceState)
 	{
-		mUri = getIntent().getExtras().getParcelable(MediaStore.EXTRA_OUTPUT);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		super.onCreate(savedInstanceState);
 
@@ -44,7 +43,6 @@ public class UnityPlayerActivity extends Activity {
 	// Quit Unity
 	@Override protected void onDestroy ()
 	{
-		finish(RESULT_PHOTO_TAKEN);
 		mUnityPlayer.quit();
 		super.onDestroy();
 	}
@@ -92,19 +90,21 @@ public class UnityPlayerActivity extends Activity {
 	@Override public boolean onTouchEvent(MotionEvent event)          { return mUnityPlayer.injectEvent(event); }
 	/*API12*/ public boolean onGenericMotionEvent(MotionEvent event)  { return mUnityPlayer.injectEvent(event); }
 
-    public String getCurrentPhotoPath(){
-        Log.d(TAG, "getCurrentPhotoPath called from Unity");
-        return getExternalStorageDirectory().getAbsolutePath().concat(mUri.getPath());
+
+    public void setNewFilePath(String filePath){
+        this.mNewFilePath = filePath;
     }
 
-	public void finish(int resultCode) {
+	public void finishActivity() {
+        Log.d(TAG, "Exiting Unity Activity");
 		Activity mParent = getParent();
 		Intent returnIntent = new Intent();
+        returnIntent.putExtra(PICTURE, mNewFilePath);
 		if (mParent == null) {
-			setResult(resultCode, returnIntent);
+			setResult(RESULT_PHOTO_TAKEN, returnIntent);
 			finish();
 		} else {
-			mParent.setResult(resultCode, returnIntent);
+			mParent.setResult(RESULT_PHOTO_TAKEN, returnIntent);
 			mParent.finishFromChild(this);
 		}
 	}

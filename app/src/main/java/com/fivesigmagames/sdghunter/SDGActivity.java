@@ -387,11 +387,15 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if(requestCode == RESQUEST_ACTIVATE_CAMERA && resultCode == RESULT_PHOTO_TAKEN){
-            updateGallery(mCurrentPhotoPath);
-            // Start preview
-            Intent previewIntent = new Intent(SDGActivity.this, PreviewActivity.class);
-            previewIntent.putExtra("pic_path", mCurrentPhotoPath);
-            startActivityForResult(previewIntent, SHOW_PREVIEW_CAPTURE);
+            String auxPath = data.getExtras().getString(PICTURE);
+            if(auxPath != null) {
+                mCurrentPhotoPath = auxPath;
+                updateGallery(mCurrentPhotoPath);
+                // Start preview
+                Intent previewIntent = new Intent(SDGActivity.this, PreviewActivity.class);
+                previewIntent.putExtra("pic_path", mCurrentPhotoPath);
+                startActivityForResult(previewIntent, SHOW_PREVIEW_CAPTURE);
+            }
         }
         else if(requestCode == SHOW_PREVIEW_CAPTURE){
             if(resultCode == RESULT_PHOTO_RETAKE){
