@@ -16,7 +16,7 @@
         android:layout_height="wrap_content"
         app:srcCompat="@drawable/red_monster"
         android:id="@+id/preview_image"
-        android:scaleType="fitXY"
+        android:scaleType="fitCenter"
         android:adjustViewBounds="true"
         android:layout_alignParentTop="true"
         android:layout_marginBottom="20dp"

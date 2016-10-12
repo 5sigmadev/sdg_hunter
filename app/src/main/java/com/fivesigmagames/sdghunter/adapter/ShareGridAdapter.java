@@ -13,6 +13,7 @@ import android.widget.Toast;
 
 import com.fivesigmagames.sdghunter.R;
 import com.fivesigmagames.sdghunter.model.ShareItem;
+import com.fivesigmagames.sdghunter.view.BitmapUtils;
 import com.fivesigmagames.sdghunter.view.ShareFragment;
 
 import java.util.ArrayList;
@@ -35,7 +36,12 @@ public class ShareGridAdapter extends RecyclerView.Adapter<ShareGridAdapter.View
     private final ShareFragment.OnShareFragmentInteractionListener mListener;
 
     public ShareGridAdapter(ArrayList data, ShareFragment.OnShareFragmentInteractionListener listener) {
-        mData = data;
+        if(data != null) {
+            mData = data;
+        }
+        else{
+            mData = new ArrayList<>();
+        }
         mListener = listener;
     }
 
@@ -72,7 +78,7 @@ public class ShareGridAdapter extends RecyclerView.Adapter<ShareGridAdapter.View
             bmOptions.inPurgeable = true;
 
             Bitmap bitmap = BitmapFactory.decodeFile(fullPath, bmOptions);
-            holder.image.setImageBitmap(bitmap);
+            holder.image.setImageBitmap(BitmapUtils.rotateImage(bitmap, BitmapUtils.getRotationAngle(fullPath)));
 
             holder.mView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -83,7 +89,8 @@ public class ShareGridAdapter extends RecyclerView.Adapter<ShareGridAdapter.View
                         mListener.sharePicture(holder.getAdapterPosition());
                     }
                 }
-            });
+            }
+            );
         }
         else {
             holder.mView.setVisibility(View.INVISIBLE);

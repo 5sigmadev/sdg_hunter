@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     tools:context="com.fivesigmagames.sdghunter.view.HomeFragment">
 
-
     <TextView
         android:text="SDG Hunter"
         android:layout_width="match_parent"
@@ -41,49 +40,16 @@
         android:layout_marginBottom="65dp" />
 
     <ImageView
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:srcCompat="@drawable/red_monster_on_bg"
-        android:id="@+id/iv_red_monster_on_bg"
-        android:scaleType="fitCenter"
-        android:scaleY="0.5"
-        android:scaleX="0.5"
-        android:rotationX="-30"
-        android:adjustViewBounds="true"
-        android:cropToPadding="false"
+        app:srcCompat="@drawable/hunters_photos"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
+        android:id="@+id/imageView2"
+        android:adjustViewBounds="true"
+        android:scaleType="fitCenter"
+        android:cropToPadding="true"
         android:layout_above="@+id/sdh_hunter_text" />
-
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:srcCompat="@drawable/yellow_monster_on_bg"
-        android:id="@+id/iv_yellow_monster_on_bg"
-        android:scaleType="fitCenter"
-        android:rotationX="30"
-        android:scaleX="0.5"
-        android:scaleY="0.5"
-        android:adjustViewBounds="true"
-        android:cropToPadding="false"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true"
-        android:layout_alignBottom="@+id/iv_green_monster_on_bg"
-        android:layout_alignStart="@+id/home_cam_btn" />
-
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:srcCompat="@drawable/green_monster_on_bg"
-        android:id="@+id/iv_green_monster_on_bg"
-        android:scaleType="fitCenter"
-        android:scaleX="0.5"
-        android:scaleY="0.5"
-        android:adjustViewBounds="true"
-        android:cropToPadding="false"
-        android:layout_alignParentTop="true"
-        android:layout_alignEnd="@+id/home_cam_btn"
-        android:layout_marginEnd="41dp" />
 
 
 </RelativeLayout>

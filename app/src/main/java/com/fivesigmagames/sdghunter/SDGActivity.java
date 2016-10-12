@@ -1,5 +1,6 @@
 package com.fivesigmagames.sdghunter;
 
+import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -7,12 +8,15 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.support.design.widget.TabLayout;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -27,7 +31,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.Toast;
 
 import com.fivesigmagames.sdghunter.model.ShareItem;
@@ -39,9 +42,15 @@ import com.fivesigmagames.sdghunter.view.MapFragment;
 import com.fivesigmagames.sdghunter.view.PreviewActivity;
 import com.fivesigmagames.sdghunter.view.ShareActivity;
 import com.fivesigmagames.sdghunter.view.ShareFragment;
+import com.fivesigmagames.sdghunter.view.ar.UnityPlayerActivity;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -58,14 +67,39 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
     private static final String DIRECTORY_CREATION_ERROR_MESSAGE = "Unxpected error when creating directory";
     private static final String LOCATION_SERVICE_NOT_CONNECTED_ERROR_MESSAGE = "Unexpected error. Location services not connected yet. " +
             "Try again in a few seconds";
-    private static final int REQUEST_IMAGE_CAPTURE = 1;
+    private static final String CURRENT_PHOTO_PATH = "CURRENT_PHOTO_PATH";
+    private static final String CURRENT_LOCATION = "CURRENT_LOCATION";
     private static final int SHOW_PREVIEW_CAPTURE = 10;
+    private static final int RESQUEST_ACTIVATE_CAMERA = 20;
     private static final int RESULT_PHOTO_RETAKE = 0;
     private static final int RESULT_PHOTO_SHARE = 1;
     private static final int RESULT_PHOTO_SAVE = 2;
+    private static final int RESULT_PHOTO_TAKEN = 4;
     private static final int TAKEN_DIR = 1;
     private static final int DOWNLOAD_DIR = 2;
     private static final int DISTANCE_THRESHOLD = 100;
+    private static final String PICTURE = "PICTURE";
+
+    // PERMISSIONS CONSTANTS
+    private static final int MY_PERMISSIONS_REQUEST_ACCESS_NETWORK_STATE = 1;
+    private static final int MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION = 2;
+    private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 3;
+    private static final int MY_PERMISSIONS_REQUEST_INTERNET = 4;
+    private static final int MY_PERMISSIONS_REQUEST_CAMERA = 5;
+    private static final int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 6;
+    private static final String[] PERMISSIONS = {
+            Manifest.permission.ACCESS_NETWORK_STATE, Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.INTERNET,
+            Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE
+    };
+
+    private static final int[] PERMISSIONS_RESULT = {
+            MY_PERMISSIONS_REQUEST_ACCESS_NETWORK_STATE, MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION,
+            MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION, MY_PERMISSIONS_REQUEST_INTERNET,
+            MY_PERMISSIONS_REQUEST_CAMERA, MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE
+    };
+
+    private boolean[] GRANTED_PERMISSIONS = { true, true, true, true, true, true};
 
     // VARS
     private SectionsPagerAdapter mSectionsPagerAdapter;
@@ -75,6 +109,7 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
     private Location mCurrentLocation;
     private boolean mLocationEnabled;
     private ShareItemRepository mShareItemRepository;
+    private boolean mPermissionsGranted;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,6 +129,9 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
 
+        checkPermissions();
+        mPermissionsGranted = updateOverallPermissionStatus();
+
         SharedPreferences prefs = getSharedPreferences("com.fivesigmagames.sdghunter", Context.MODE_PRIVATE);
         if(!prefs.contains("firstUsage") || prefs.getBoolean("firstUsage", false)) {
             this.buildHintAlertMessage();
@@ -105,11 +143,103 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
 
     }
 
+    private boolean updateOverallPermissionStatus() {
+        for(boolean b : GRANTED_PERMISSIONS) if(!b) return false;
+        return true;
+    }
+
+    private void checkPermissions() {
+        int i = 0;
+        for(String permission : PERMISSIONS) {
+            if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+                GRANTED_PERMISSIONS[i] = false;
+                ActivityCompat.requestPermissions(this, new String[]{permission}, PERMISSIONS_RESULT[i]);
+                Log.d(TAG, "Permission: "+permission+" needed. Requesting it...");
+            }
+            ++i;
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    GRANTED_PERMISSIONS[MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION-1] = true;
+                    checkPermissions();
+                    updateOverallPermissionStatus();
+                }
+                break;
+            }
+            case MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    GRANTED_PERMISSIONS[MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION-1] = true;
+                    checkPermissions();
+                    updateOverallPermissionStatus();
+                }
+                break;
+            }
+            case MY_PERMISSIONS_REQUEST_ACCESS_NETWORK_STATE: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    GRANTED_PERMISSIONS[MY_PERMISSIONS_REQUEST_ACCESS_NETWORK_STATE-1] = true;
+                    checkPermissions();
+                    updateOverallPermissionStatus();
+                }
+                break;
+            }case MY_PERMISSIONS_REQUEST_CAMERA: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    GRANTED_PERMISSIONS[MY_PERMISSIONS_REQUEST_CAMERA-1] = true;
+                    checkPermissions();
+                    updateOverallPermissionStatus();
+                }
+                break;
+            }
+            case MY_PERMISSIONS_REQUEST_INTERNET: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    GRANTED_PERMISSIONS[MY_PERMISSIONS_REQUEST_INTERNET-1] = true;
+                    checkPermissions();
+                    updateOverallPermissionStatus();
+                }
+                break;
+            }
+            case MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    GRANTED_PERMISSIONS[MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE-1] = true;
+                    checkPermissions();
+                    updateOverallPermissionStatus();
+                }
+                break;
+            }
+
+        }
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_sdh, menu);
         return true;
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        if(mCurrentPhotoPath != null) {
+            savedInstanceState.putString(CURRENT_PHOTO_PATH, mCurrentPhotoPath);
+            Log.d(TAG, "Saving current photo: " + mCurrentPhotoPath + " path in state");
+        }
+        if(mCurrentLocation != null) {
+            savedInstanceState.putParcelable(CURRENT_LOCATION, mCurrentLocation);
+            Log.d(TAG, "Saving current location: Lat " + mCurrentLocation.getLatitude() + " Lng " +
+                    mCurrentLocation.getLongitude() + " in state");
+        }
+        super.onSaveInstanceState(savedInstanceState);
     }
 
     @Override
@@ -152,23 +282,29 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
         //Register BroadcastReceiver
         //to receive event from our service
         super.onStart();
-        mLocationEnabled = true;
+
         String locationProviders = Settings.Secure.getString(getContentResolver(), Settings.Secure.LOCATION_PROVIDERS_ALLOWED);
         if (locationProviders == null || locationProviders.equals("")) {
             mLocationEnabled = false;
             buildAlertMessageNoGps();
         }
+        if(mPermissionsGranted) {
+            mLocationEnabled = true;
+            locationReceiver = new LocationReceiver();
+            IntentFilter intentFilter = new IntentFilter();
+            intentFilter.addAction(LocationService.LOCATION_UPDATE);
+            registerReceiver(locationReceiver, intentFilter);
 
-        locationReceiver = new LocationReceiver();
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(LocationService.LOCATION_UPDATE);
-        registerReceiver(locationReceiver, intentFilter);
+            //Start our own service
+            Intent intent = new Intent(this, LocationService.class);
+            startService(intent);
 
-        //Start our own service
-        Intent intent = new Intent(this, LocationService.class);
-        startService(intent);
-
-        mShareItemRepository = new ShareItemRepository(this);
+            mShareItemRepository = new ShareItemRepository(this);
+        }
+        else{
+            checkPermissions();
+            mPermissionsGranted = updateOverallPermissionStatus();
+        }
     }
 
     private void buildAlertMessageNoGps() {
@@ -193,9 +329,21 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
     }
 
     @Override
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        mCurrentPhotoPath = savedInstanceState.getString(CURRENT_PHOTO_PATH);
+        Log.d(TAG, "Restoring current photo: "+mCurrentPhotoPath+" path from state");
+        mCurrentLocation = savedInstanceState.getParcelable(CURRENT_LOCATION);
+        Log.d(TAG, "Saving current location: Lat "+mCurrentLocation.getLatitude()+" Lng "+
+                mCurrentLocation.getLongitude()+" in state");
+    }
+
+    @Override
     protected void onStop() {
-        unregisterReceiver(locationReceiver);
-        stopService(new Intent(this, LocationService.class));
+        if(mPermissionsGranted) {
+            unregisterReceiver(locationReceiver);
+            stopService(new Intent(this, LocationService.class));
+        }
         super.onStop();
     }
 
@@ -214,11 +362,8 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
             mLocationEnabled = false;
             buildAlertMessageNoGps();
         }
-
-        if(mLocationEnabled) { // Only take a picture if the location is activated
-            Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-            if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-
+        if(mPermissionsGranted) {
+            if (mLocationEnabled) { // Only take a picture if the location is activated
                 File photoFile = null;
                 try {
                     photoFile = createImageFile();
@@ -230,19 +375,27 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
                 if (photoFile != null) {
                     Uri photoURI = FileProvider.getUriForFile(this, "com.fivesigmagames.sdghunter.fileprovider",
                             photoFile);
-                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
-                    startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+                    Intent cameraIntent = new Intent(SDGActivity.this, UnityPlayerActivity.class);
+                    cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                    startActivityForResult(cameraIntent, RESQUEST_ACTIVATE_CAMERA);
                 } else {
                     Toast.makeText(this, DIRECTORY_CREATION_ERROR_MESSAGE, Toast.LENGTH_LONG).show();
                 }
-
             }
+        }
+        else{
+            checkPermissions();
+            mPermissionsGranted = updateOverallPermissionStatus();
         }
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+        if(requestCode == RESQUEST_ACTIVATE_CAMERA && resultCode == RESULT_PHOTO_TAKEN){
+            String auxPath = data.getExtras().getString(PICTURE);
+            if(auxPath != null) {
+                movePicture(mCurrentPhotoPath, auxPath);
+            }
             updateGallery(mCurrentPhotoPath);
             // Start preview
             Intent previewIntent = new Intent(SDGActivity.this, PreviewActivity.class);
@@ -274,6 +427,52 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
                 mViewPager.setCurrentItem(2);
             }
         }
+    }
+
+    private void movePicture(String dst, String src) {
+        InputStream in = null;
+        OutputStream out = null;
+        try {
+            Log.d(TAG, "Moving file... Src " + src + " to Dst " + dst);
+            in = new FileInputStream(src);
+            out = new FileOutputStream(dst);
+
+            byte[] buffer = new byte[1024];
+            int read;
+            while ((read = in.read(buffer)) != -1) {
+                out.write(buffer, 0, read);
+            }
+            in.close();
+            in = null;
+
+            // write the output file
+            out.flush();
+            out.close();
+            out = null;
+            Log.d(TAG, "Finished moving file file...");
+            deleteFileFromMediaStore(getContentResolver(), new File(src));
+        } catch (FileNotFoundException e) {
+            Log.e(TAG,"Error moving file. Src " + src +" or Dst " + dst + " file not found");
+        } catch (IOException e) {
+            Log.e(TAG, "Error moving file. Unexpected IO error");
+        }
+        finally {
+            if(in != null){
+                try {
+                    in.close();
+                } catch (IOException e) {
+                    Log.e(TAG, "Unexpected error closing input stream");
+                }
+            }
+            if(out != null){
+                try {
+                    out.close();
+                } catch (IOException e) {
+                    Log.e(TAG, "Unexpected error closing output stream");
+                }
+            }
+        }
+
     }
 
     private boolean updateMapFragment(ShareItem item) {
@@ -318,6 +517,7 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
         } catch (IOException e) {
             canonicalPath = file.getAbsolutePath();
         }
+        Log.d(TAG, "Deleting file " + canonicalPath + " from media store");
         final Uri uri = MediaStore.Files.getContentUri("external");
         final int result = contentResolver.delete(uri,
                 MediaStore.Files.FileColumns.DATA + "=?", new String[] {canonicalPath});
@@ -328,6 +528,7 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
                         MediaStore.Files.FileColumns.DATA + "=?", new String[]{absolutePath});
             }
         }
+        Log.d(TAG, "File deleted from media store");
     }
 
     private void savePhotoEntryInDb(String picPath) {
@@ -356,7 +557,7 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
         if ((storageDir = checkSDGHunterDirectory(TAKEN_DIR)) != null) {
             String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmssSSS").format(new Date());
             String imageFileName = "JPEG_" + timeStamp;
-            image = File.createTempFile(
+            image = File.createTempFile( // Using createTempFile to guarantee uniqueness in the filename
                     imageFileName,  /* prefix */
                     ".jpeg",         /* suffix */
                     storageDir      /* directory */
@@ -394,19 +595,26 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
     // Share Fragment
     @Override
     public void sharePicture(int position) {
-        ShareFragment fragment = (ShareFragment) getSupportFragmentManager().findFragmentByTag(getFragementTag(2));
-        ShareItem item = fragment.getShareItem(position);
+        if(mPermissionsGranted) {
+            ShareFragment fragment = (ShareFragment) getSupportFragmentManager().findFragmentByTag(getFragementTag(2));
+            ShareItem item = fragment.getShareItem(position);
 
-        //Create intent
-        Intent intent = new Intent(SDGActivity.this, ShareActivity.class);
-        intent.putExtra("pic_path", item.getFullPath());
-        //Start details activity
-        startActivity(intent);
+            //Create intent
+            Intent intent = new Intent(SDGActivity.this, ShareActivity.class);
+            intent.putExtra("pic_path", item.getFullPath());
+            //Start details activity
+            startActivity(intent);
+        }
+        else{
+            checkPermissions();
+            mPermissionsGranted = updateOverallPermissionStatus();
+        }
     }
 
     private String getFragementTag(int position) {
         return "android:switcher:" + mViewPager.getId() + ":" + position;
     }
+
 
     /**
      * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
@@ -457,40 +665,51 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
     }
 
     private ArrayList<ShareItem> getSDGImages() {
+        if(mPermissionsGranted) {
+            ArrayList<ShareItem> files = new ArrayList();// list of file paths
+            String sdgPictures = getResources().getString(R.string.sdg_pictures_path).concat(File.separator).concat(
+                    getResources().getString(R.string.sdg_taken_pictures_path)
+            );
+            File file = new File(getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), sdgPictures);
 
-        ArrayList<ShareItem> files = new ArrayList();// list of file paths
-        String sdgPictures = getResources().getString(R.string.sdg_pictures_path).concat(File.separator).concat(
-                getResources().getString(R.string.sdg_taken_pictures_path)
-        );
-        File file= new File(getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),sdgPictures);
-
-        if (file.isDirectory()) {
-            File[] listFile = file.listFiles();
-            for (int i = 0; i < listFile.length; i++) {
-                ShareItem item = mShareItemRepository.findByName(listFile[i].getName());
-                if(item != null){
-                    item.setFullPath(listFile[i].getAbsolutePath());
-                    files.add(item);
-                }
-                else {
-                    Log.e(TAG, "An entry in the db should exist for " + listFile[i].getName());
+            if (file.isDirectory()) {
+                File[] listFile = file.listFiles();
+                for (int i = 0; i < listFile.length; i++) {
+                    ShareItem item = mShareItemRepository.findByName(listFile[i].getName());
+                    if (item != null) {
+                        item.setFullPath(listFile[i].getAbsolutePath());
+                        files.add(item);
+                    } else {
+                        Log.e(TAG, "An entry in the db should exist for " + listFile[i].getName());
+                    }
                 }
             }
+            return files;
         }
-        return files;
+        else{
+            checkPermissions();
+            mPermissionsGranted = updateOverallPermissionStatus();
+            return null;
+        }
     }
 
     private ShareItem getSDGImage(String picPath) {
-        String[] parts = picPath.split(File.separator);
-        ShareItem item = mShareItemRepository.findByName(parts[parts.length-1]);
-        if(item != null){
-            item.setFullPath(picPath);
-            return item;
+        if(mPermissionsGranted) {
+            String[] parts = picPath.split(File.separator);
+            ShareItem item = mShareItemRepository.findByName(parts[parts.length - 1]);
+            if (item != null) {
+                item.setFullPath(picPath);
+                return item;
+            } else {
+                Log.e(TAG, "An entry in the db should exist for " + parts[parts.length - 1]);
+                return null;
+            }
         }
-        else {
-            Log.e(TAG, "An entry in the db should exist for " + parts[parts.length-1]);
-            return null;
+        else{
+            checkPermissions();
+            mPermissionsGranted = updateOverallPermissionStatus();
         }
+        return null;
     }
 
     private class LocationReceiver extends BroadcastReceiver {

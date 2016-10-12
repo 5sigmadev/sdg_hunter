@@ -46,14 +46,15 @@
         android:layout_marginTop="17dp" />
 
     <ImageView
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:srcCompat="@drawable/red_monster"
         android:id="@+id/share_activity_pic"
         android:adjustViewBounds="true"
         android:layout_above="@+id/share_text"
         android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentStart="true"
+        android:scaleType="fitCenter" />
 
 
 </RelativeLayout>

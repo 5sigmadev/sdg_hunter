@@ -40,4 +40,7 @@ dependencies {
     compile 'com.android.support:recyclerview-v7:24.2.1'
     compile 'com.facebook.android:facebook-android-sdk:[4,5)'
     compile 'com.google.android.gms:play-services-location:9.6.1'
+    compile files('libs/Vuforia.jar')
+    compile files('libs/VuforiaUnityPlayer.jar')
+    compile files('libs/unity-classes.jar')
 }

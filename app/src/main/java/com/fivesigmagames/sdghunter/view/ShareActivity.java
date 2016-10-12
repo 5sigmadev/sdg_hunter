@@ -27,6 +27,8 @@ public class ShareActivity extends AppCompatActivity {
     private static final String TWITTER_NOT_INSTALLED_ERROR_MESSAGE = "Twitter is not installed.";
     private static final String FACEBOOK_NOT_INSTALLED_ERROR_MESSAGE = "Facebook is not installed.";
     private static final String UNEXPECTED_ERROR_MESSAGE = "An unexpected error occurred when trying to share" ;
+    private static final int WIDTH = 300;
+    private static final int HEIGHT = 300;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,9 +37,27 @@ public class ShareActivity extends AppCompatActivity {
 
         final String picFullPath = getIntent().getStringExtra("pic_path");
         BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+        // Get the dimensions of the View
+        int targetW = WIDTH;
+        int targetH = HEIGHT;
+
+        // Get the dimensions of the bitmap
+        bmOptions.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(picFullPath, bmOptions);
+        int photoW = bmOptions.outWidth;
+        int photoH = bmOptions.outHeight;
+
+        // Determine how much to scale down the image
+        int scaleFactor = Math.min(photoW / targetW, photoH / targetH);
+
+        // Decode the image file into a Bitmap sized to fill the View
+        bmOptions.inJustDecodeBounds = false;
+        bmOptions.inSampleSize = scaleFactor;
+        bmOptions.inPurgeable = true;
+
         Bitmap bitmap = BitmapFactory.decodeFile(picFullPath,bmOptions);
         ImageView imageView = (ImageView) findViewById(R.id.share_activity_pic);
-        imageView.setImageBitmap(bitmap);
+        imageView.setImageBitmap(BitmapUtils.rotateImage(bitmap, BitmapUtils.getRotationAngle(picFullPath)));
 
         Button instaBtn = (Button) findViewById(R.id.btn_share_insta);
         instaBtn.setOnClickListener(new View.OnClickListener() {
