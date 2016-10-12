@@ -71,6 +71,7 @@
             android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|screenLayout|uiMode|screenSize|smallestScreenSize|fontScale"
             android:name="com.fivesigmagames.sdghunter.view.ar.UnityPlayerActivity"
             android:process=":UnityProcess">
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"/>
             <meta-data android:name="unityplayer.UnityActivity" android:value="true" />
             <meta-data android:name="unityplayer.ForwardNativeEventsToDalvik" android:value="false" />
         </activity>

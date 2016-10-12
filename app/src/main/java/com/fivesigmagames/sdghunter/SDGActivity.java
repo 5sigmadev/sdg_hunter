@@ -45,7 +45,12 @@ import com.fivesigmagames.sdghunter.view.ShareFragment;
 import com.fivesigmagames.sdghunter.view.ar.UnityPlayerActivity;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -389,13 +394,13 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
         if(requestCode == RESQUEST_ACTIVATE_CAMERA && resultCode == RESULT_PHOTO_TAKEN){
             String auxPath = data.getExtras().getString(PICTURE);
             if(auxPath != null) {
-                mCurrentPhotoPath = auxPath;
-                updateGallery(mCurrentPhotoPath);
-                // Start preview
-                Intent previewIntent = new Intent(SDGActivity.this, PreviewActivity.class);
-                previewIntent.putExtra("pic_path", mCurrentPhotoPath);
-                startActivityForResult(previewIntent, SHOW_PREVIEW_CAPTURE);
+                movePicture(mCurrentPhotoPath, auxPath);
             }
+            updateGallery(mCurrentPhotoPath);
+            // Start preview
+            Intent previewIntent = new Intent(SDGActivity.this, PreviewActivity.class);
+            previewIntent.putExtra("pic_path", mCurrentPhotoPath);
+            startActivityForResult(previewIntent, SHOW_PREVIEW_CAPTURE);
         }
         else if(requestCode == SHOW_PREVIEW_CAPTURE){
             if(resultCode == RESULT_PHOTO_RETAKE){
@@ -422,6 +427,52 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
                 mViewPager.setCurrentItem(2);
             }
         }
+    }
+
+    private void movePicture(String dst, String src) {
+        InputStream in = null;
+        OutputStream out = null;
+        try {
+            Log.d(TAG, "Moving file... Src " + src + " to Dst " + dst);
+            in = new FileInputStream(src);
+            out = new FileOutputStream(dst);
+
+            byte[] buffer = new byte[1024];
+            int read;
+            while ((read = in.read(buffer)) != -1) {
+                out.write(buffer, 0, read);
+            }
+            in.close();
+            in = null;
+
+            // write the output file
+            out.flush();
+            out.close();
+            out = null;
+            Log.d(TAG, "Finished moving file file...");
+            deleteFileFromMediaStore(getContentResolver(), new File(src));
+        } catch (FileNotFoundException e) {
+            Log.e(TAG,"Error moving file. Src " + src +" or Dst " + dst + " file not found");
+        } catch (IOException e) {
+            Log.e(TAG, "Error moving file. Unexpected IO error");
+        }
+        finally {
+            if(in != null){
+                try {
+                    in.close();
+                } catch (IOException e) {
+                    Log.e(TAG, "Unexpected error closing input stream");
+                }
+            }
+            if(out != null){
+                try {
+                    out.close();
+                } catch (IOException e) {
+                    Log.e(TAG, "Unexpected error closing output stream");
+                }
+            }
+        }
+
     }
 
     private boolean updateMapFragment(ShareItem item) {
@@ -466,6 +517,7 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
         } catch (IOException e) {
             canonicalPath = file.getAbsolutePath();
         }
+        Log.d(TAG, "Deleting file " + canonicalPath + " from media store");
         final Uri uri = MediaStore.Files.getContentUri("external");
         final int result = contentResolver.delete(uri,
                 MediaStore.Files.FileColumns.DATA + "=?", new String[] {canonicalPath});
@@ -476,6 +528,7 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
                         MediaStore.Files.FileColumns.DATA + "=?", new String[]{absolutePath});
             }
         }
+        Log.d(TAG, "File deleted from media store");
     }
 
     private void savePhotoEntryInDb(String picPath) {
