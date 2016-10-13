@@ -77,7 +77,7 @@ public class ShareFragment extends Fragment {
         // Set the adapter
         if (recyclerView != null) {
             Context context = recyclerView.getContext();
-            if (mShareItemList == null && mShareItemList.size() <= 1) {
+            if (mShareItemList == null || mShareItemList.size() <= 1) {
                 recyclerView.setLayoutManager(new LinearLayoutManager(context));
             } else {
                 recyclerView.setLayoutManager(new GridLayoutManager(context, GRID_SPAN_COUNT_PORTRAIT));
