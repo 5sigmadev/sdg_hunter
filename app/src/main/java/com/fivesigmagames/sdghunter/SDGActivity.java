@@ -258,9 +258,7 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
     private void buildHintAlertMessage() {
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("HINT");
-        builder.setMessage("Lorem impsum lorem mpsum, Lorem impsum lorem mpsumLorem impsum lorem " +
-                "mpsumLorem impsum lorem mpsumLorem impsum lorem mpsumLorem impsum lorem mpsumLorem " +
-                "impsum lorem mpsumLorem impsum lorem mpsumLorem impsum lorem mpsumLorem impsum lorem mpsum")
+        builder.setMessage(getResources().getString(R.string.hint_text_val))
                 .setCancelable(false)
                 .setPositiveButton("Tell me more", new DialogInterface.OnClickListener() {
                     public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
@@ -331,11 +329,17 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
     @Override
     public void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        mCurrentPhotoPath = savedInstanceState.getString(CURRENT_PHOTO_PATH);
-        Log.d(TAG, "Restoring current photo: "+mCurrentPhotoPath+" path from state");
-        mCurrentLocation = savedInstanceState.getParcelable(CURRENT_LOCATION);
-        Log.d(TAG, "Saving current location: Lat "+mCurrentLocation.getLatitude()+" Lng "+
-                mCurrentLocation.getLongitude()+" in state");
+        if(savedInstanceState != null) {
+            mCurrentPhotoPath = savedInstanceState.getString(CURRENT_PHOTO_PATH);
+            if(mCurrentPhotoPath != null) {
+                Log.d(TAG, "Restoring current photo: " + mCurrentPhotoPath + " path from state");
+            }
+            if(mCurrentLocation != null) {
+                mCurrentLocation = savedInstanceState.getParcelable(CURRENT_LOCATION);
+                Log.d(TAG, "Saving current location: Lat " + mCurrentLocation.getLatitude() + " Lng " +
+                        mCurrentLocation.getLongitude() + " in state");
+            }
+        }
     }
 
     @Override

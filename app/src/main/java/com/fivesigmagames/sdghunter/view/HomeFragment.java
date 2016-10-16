@@ -74,7 +74,8 @@ public class HomeFragment extends Fragment {
         Bitmap cam_button = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.cam);
         Bitmap resized_cam_button = Bitmap.createScaledBitmap(cam_button, (int)(cam_button.getWidth()*0.1), (int)(cam_button.getHeight()*0.08), true);
         // set the Drawable on the ImageView
-        btn_cam.setBackground(new BitmapDrawable(getResources(),resized_cam_button));
+        btn_cam//.setBackgroundDrawable(new BitmapDrawable(getResources(),resized_cam_button));
+                .setBackground(new BitmapDrawable(getResources(),resized_cam_button));
         btn_cam.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
