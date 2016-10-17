@@ -18,20 +18,59 @@
 
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="273dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical" >
+            android:orientation="vertical"
+            android:weightSum="1">
+
+            <TextView
+                android:text="SDG Hunter"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/about_title"
+                android:textAppearance="@style/TextAppearance.AppCompat"
+                android:textAlignment="center"
+                android:textStyle="normal|bold" />
 
             <TextView
                 android:text="@string/about_text_val"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="249dp"
                 android:id="@+id/about_text"
                 android:textAppearance="@style/TextAppearance.AppCompat"
                 android:layout_margin="10dp" />
+
+            <TextView
+                android:text="TAKE A SELFIE WITH THE SDG MONSTER!"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/hint_title"
+                android:textAppearance="@style/TextAppearance.AppCompat"
+                android:textStyle="normal|bold"
+                android:textAlignment="center" />
+
+            <TextView
+                android:text="@string/hint_text_val"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/hint_text" />
+
+            <TextView
+                android:text="@string/about_text_signature"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/about_signature" />
+
+            <ImageView
+                android:layout_width="60dp"
+                app:srcCompat="@drawable/unog"
+                android:id="@+id/imageView3"
+                android:scaleType="fitXY"
+                android:adjustViewBounds="true"
+                android:layout_height="60dp" />
 
         </LinearLayout>
 

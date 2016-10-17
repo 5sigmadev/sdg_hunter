@@ -1,9 +1,27 @@
 <resources>
     <string name="app_name">SDG Hunter</string>
     <string name="action_hint">Hint</string>
-    <string name="about_text_val">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque accumsan euismod ligula sed consectetur. Nullam ullamcorper diam eget dolor cursus dignissim. Quisque laoreet vehicula posuere. Integer elementum vehicula eros id ullamcorper. Duis elit elit, sodales vel vestibulum quis, dignissim in ipsum. In eu diam vestibulum, pretium metus eget, tincidunt felis. In consequat sapien nec aliquam efficitur. Praesent feugiat feugiat cursus. Nullam lectus sapien, blandit id velit a, semper lobortis nisl. Sed et nisi sed nisi convallis consectetur. Phasellus enim mauris, tempus quis mauris sit amet, tempor pulvinar nisi.
-
-Aliquam sed interdum ex. Quisque molestie ornare porttitor. Sed aliquet velit odio, quis rhoncus neque cursus nec. In pharetra libero ac iaculis aliquam. Sed mattis libero vel enim bibendum, in elementum nulla pharetra. Sed tincidunt, tellus non lobortis pharetra, ligula ipsum feugiat ipsum, nec finibus est mi vel mi. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Nulla porta volutpat finibus. Aliquam libero mi, pharetra rutrum ultrices vitae, feugiat ut est. Nulla hendrerit nibh ipsum. Mauris nisl eros, euismod quis dolor quis, scelerisque bibendum velit. Vivamus eget facilisis tellus.
-
-Praesent malesuada efficitur tellus, rhoncus aliquet dolor facilisis sit amet. Nam eu nulla metus. Aenean consequat sem tellus, eu ornare lectus vestibulum id. Ut ultrices diam vel diam maximus elementum. Fusce porta, nisl vel congue tempus, purus risus dapibus mauris, in viverra dolor elit in dui. Donec arcu mauris, ultrices eget ipsum ac, pulvinar varius ligula. Sed lacinia dapibus lectus et mollis. Nullam semper gravida hendrerit.</string>
+    <string name="about_text_val">Developed by a team of students during the “ODD Summer 2016” summer school, “SDG Hunter” is a game that proposes a fun and engaging way to make people aware of the existence of the SDGs.\n
+    In the game, issues related to the different Goals (poverty, hunger, ...) are depicted as augmented reality SDG Monsters, that the player has to place in the environment every time he/she sees an instance of that issue.
+    For example, you see a huge traffic jam in a street and you create a “Goal 11” SDG Monster for sustainable transport systems at that place.\n
+    Taking a “selfie” with the SDG Monster in that location, and posting it on social media, will raise awareness of the SDGs and at the same time will build a crowdsourced global map of sustainable development issues.\n
+    </string>
+    <string name="about_text_signature">
+        An ODD Summer” project, developed by:\n
+        \tSingling BAI\n
+        \tYu BAI\n
+        \tChupei LIN\n
+        \tDenying GUO\n
+        \tQuentin FAYET\n
+        \tTom VERSTEEG\n
+        \n
+        in partnership with:
+    </string>
+    <string name="hint_text_val">
+        In a first prototype of the game, being launched at Habitat III, you can generate an augmented reality SDG monster on your Android smart- phone by pointing it at a table of the Global Goals.\n
+        \n
+            1.	Point with your camera at a table of the Global Goals\n
+            2.	Take a selfie with the SDG Monster\n
+            3.	Follow the instruction to share your photo on Social Media Spread the word and help raise awareness for the SDGs!\n
+    </string>
 </resources>
