@@ -65,7 +65,6 @@
         <!-- UNITY ACTIVITY -->
         <activity android:label="@string/app_name"
             android:screenOrientation="fullSensor"
-            android:launchMode="singleTask"
             android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|screenLayout|uiMode|screenSize|smallestScreenSize|fontScale"
             android:name="com.fivesigmagames.sdghunter.view.ar.UnityPlayerActivity"
             android:process=":UnityProcess">
