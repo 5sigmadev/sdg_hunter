@@ -89,15 +89,15 @@ public class LocationService extends Service implements com.google.android.gms.l
 
     }
 
-    @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
-        /*
-         If the connection fails due to a missing or out-of-date version of the Google Play APK,
-         the callback receives an error code such as SERVICE_MISSING, SERVICE_VERSION_UPDATE_REQUIRED,
-         or SERVICE_DISABLED.
-         */
-        Log.e(TAG, connectionResult.getErrorMessage());
-    }
+        @Override
+        public void onConnectionFailed(ConnectionResult connectionResult) {
+            /*
+             If the connection fails due to a missing or out-of-date version of the Google Play APK,
+             the callback receives an error code such as SERVICE_MISSING, SERVICE_VERSION_UPDATE_REQUIRED,
+             or SERVICE_DISABLED.
+             */
+            Log.e(TAG, connectionResult.getErrorMessage());
+        }
 
 
     @Override

@@ -1,4 +1,4 @@
-package com.fivesigmagames.sdghunter.model.repository;
+package com.fivesigmagames.sdghunter.repository.sqlite;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -7,7 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
 import com.fivesigmagames.sdghunter.model.ShareItem;
-import com.fivesigmagames.sdghunter.model.repository.ShareItemContract.ShareItemEntry;
+import com.fivesigmagames.sdghunter.repository.sqlite.ShareItemContract.ShareItemEntry;
 /**
  * Created by ppanero on 06/10/16.
  */

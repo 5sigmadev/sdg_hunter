@@ -1,4 +1,4 @@
-package com.fivesigmagames.sdghunter.model.repository;
+package com.fivesigmagames.sdghunter.repository.sqlite;
 
 import android.provider.BaseColumns;
 

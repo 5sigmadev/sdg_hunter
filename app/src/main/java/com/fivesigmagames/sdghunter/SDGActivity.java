@@ -34,7 +34,7 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.fivesigmagames.sdghunter.model.ShareItem;
-import com.fivesigmagames.sdghunter.model.repository.ShareItemRepository;
+import com.fivesigmagames.sdghunter.repository.sqlite.ShareItemRepository;
 import com.fivesigmagames.sdghunter.services.LocationService;
 import com.fivesigmagames.sdghunter.view.AboutFragment;
 import com.fivesigmagames.sdghunter.view.HomeFragment;
