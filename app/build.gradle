@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 24
-    buildToolsVersion "24.0.1"
+    buildToolsVersion "24.0.3"
     defaultConfig {
         applicationId "com.fivesigmagames.sdghunter"
         minSdkVersion 15
@@ -44,6 +44,7 @@ dependencies {
     compile files('libs/VuforiaUnityPlayer.jar')
     compile files('libs/unity-classes.jar')
     // For DynamoDB and S3
+    compile files('libs/dynamodb-geo-1.1.0-jar-with-dependencies.jar')
     compile files('libs/guava-r09/guava-r09.jar')
     compile files('libs/s2-geometry-library/s2-geometry-java.jar')
     compile 'com.amazonaws:aws-android-sdk-core:2.2.+'
