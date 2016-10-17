@@ -51,6 +51,7 @@ public class ShareItemRepository {
             values.put(ShareItemEntry.COLUMN_NAME_LONGITUDE, item.getLongitude());
 
             long newItemId = db.insert(ShareItemEntry.TABLE_NAME, null, values);
+            db.close();
         }
     }
 
@@ -93,6 +94,8 @@ public class ShareItemRepository {
             double longitude = queryCursor.getDouble(
                     queryCursor.getColumnIndexOrThrow(ShareItemEntry.COLUMN_NAME_LONGITUDE)
             );
+            queryCursor.close();
+            db.close();
             return new ShareItem(_id, title, null, latitude, longitude);
         }
         else if(resultCount > 1){
@@ -101,6 +104,8 @@ public class ShareItemRepository {
         else {
             Log.d(TAG, "Photo title not found in db");
         }
+        queryCursor.close();
+        db.close();
         return null;
     }
 
