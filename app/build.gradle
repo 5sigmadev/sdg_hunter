@@ -24,7 +24,7 @@ repositories {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile fileTree(include: ['*.jar'], dir: 'libs')
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
@@ -43,4 +43,12 @@ dependencies {
     compile files('libs/Vuforia.jar')
     compile files('libs/VuforiaUnityPlayer.jar')
     compile files('libs/unity-classes.jar')
+    // For DynamoDB and S3
+    compile files('libs/guava-r09/guava-r09.jar')
+    compile files('libs/s2-geometry-library/s2-geometry-java.jar')
+    compile 'com.amazonaws:aws-android-sdk-core:2.2.+'
+    compile 'com.amazonaws:aws-android-sdk-s3:2.2.+'
+    compile 'com.amazonaws:aws-android-sdk-ddb:2.2.+'
+    compile 'com.amazonaws:aws-android-sdk-ddb-mapper:2.2.+'
+    compile 'com.amazonaws:aws-android-sdk-cognitoidentityprovider:2.2.+'
 }
