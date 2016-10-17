@@ -395,7 +395,11 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        Log.d(TAG, "OnActivityResult requestCode: " + requestCode);
+        Log.d(TAG, "OnActivityResult resultCode: " + resultCode);
         if(requestCode == RESQUEST_ACTIVATE_CAMERA && resultCode == RESULT_PHOTO_TAKEN){
+            Log.d(TAG, "Starting preview...");
             String auxPath = data.getExtras().getString(PICTURE);
             if(auxPath != null) {
                 movePicture(mCurrentPhotoPath, auxPath);
@@ -553,6 +557,7 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
         Uri contentUri = Uri.fromFile(pic);
         mediaScanIntent.setData(contentUri);
         this.sendBroadcast(mediaScanIntent);
+        Log.d(TAG, "Gallery updated");
     }
 
     private File createImageFile() throws IOException {
