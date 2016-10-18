@@ -15,9 +15,9 @@ public class AWSInitMapperAsyncTask extends AsyncTask<AWSDatabaseHelper, Void, D
     private static final String TAG = "SDG [AWS InitMapper]";
 
     // VARS
-    public AsyncResponse delegate = null;
+    public InitMapperAsyncResponse delegate = null;
 
-    public AWSInitMapperAsyncTask(AsyncResponse delegate){
+    public AWSInitMapperAsyncTask(InitMapperAsyncResponse delegate){
         this.delegate = delegate;
     }
 
@@ -47,8 +47,7 @@ public class AWSInitMapperAsyncTask extends AsyncTask<AWSDatabaseHelper, Void, D
 
     // INTERFACES
 
-    // you may separate this or combined to caller class.
-    public interface AsyncResponse {
+    public interface InitMapperAsyncResponse {
         void processFinish(DynamoDBMapper output);
     }
 

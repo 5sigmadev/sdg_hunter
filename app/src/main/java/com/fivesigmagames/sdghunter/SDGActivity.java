@@ -34,6 +34,7 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.fivesigmagames.sdghunter.model.ShareItem;
+import com.fivesigmagames.sdghunter.repository.aws.AWSQueryAsyncTask;
 import com.fivesigmagames.sdghunter.repository.aws.AWSShareItemRepository;
 import com.fivesigmagames.sdghunter.repository.sqlite.SqliteShareItemRepository;
 import com.fivesigmagames.sdghunter.services.LocationService;
@@ -55,12 +56,13 @@ import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import static android.os.Environment.getExternalStoragePublicDirectory;
 
 public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHomeFragmentInteractionListener,
         MapFragment.OnFragmentInteractionListener, ShareFragment.OnShareFragmentInteractionListener,
-        AboutFragment.OnAboutFragmentInteractionListener {
+        AboutFragment.OnAboutFragmentInteractionListener, AWSQueryAsyncTask.QueryAsyncResponse {
 
     // CONSTANTS
     private static final String TAG = "SDG [Main Activity]";
@@ -300,7 +302,7 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
             startService(intent);
 
             mSqliteShareItemRepository = new SqliteShareItemRepository(this);
-            mAwsShareItemRepository = new AWSShareItemRepository(this);
+            mAwsShareItemRepository = new AWSShareItemRepository(this, this);
         }
         else{
             checkPermissions();
@@ -759,10 +761,18 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
                     shareItemList = getSDGImages();
                 }
                 mCurrentLocation = auxLocation;
-                fragment.updateMap(shareItemList, mCurrentLocation);
+                fragment.updateMap(shareItemList, mCurrentLocation, true);
                 Log.d(TAG, "Current location: lat - " + mCurrentLocation.getLatitude() +
                         " long -" + mCurrentLocation.getLongitude());
             }
+        }
+    }
+
+    @Override
+    public void queryProcessFinish(ArrayList<ShareItem> output) {
+        MapFragment fragment = (MapFragment) getSupportFragmentManager().findFragmentByTag(getFragementTag(1));
+        if(fragment != null) {
+            fragment.updateMap(output, mCurrentLocation, false);
         }
     }
 

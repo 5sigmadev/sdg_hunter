@@ -1,26 +1,23 @@
 package com.fivesigmagames.sdghunter.repository.aws;
 
 import android.content.Context;
+import android.location.Location;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.amazonaws.geo.GeoDataManager;
-import com.amazonaws.geo.GeoDataManagerConfiguration;
-import com.amazonaws.geo.model.GeoPoint;
-import com.amazonaws.geo.model.PutPointRequest;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
-import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.S3Link;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.PutItemRequest;
+import com.fivesigmagames.sdghunter.R;
 import com.fivesigmagames.sdghunter.model.ShareItem;
 
-import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by ppanero on 17/10/2016.
  */
 
-public class AWSShareItemRepository implements AWSInitMapperAsyncTask.AsyncResponse{
+public class AWSShareItemRepository implements AWSInitMapperAsyncTask.InitMapperAsyncResponse,
+        AWSQueryAsyncTask.QueryAsyncResponse {
 
     // CONSTANTS
     private static final String MY_BUCKET_NAME = "sdg-hunter";
@@ -30,12 +27,16 @@ public class AWSShareItemRepository implements AWSInitMapperAsyncTask.AsyncRespo
     private AWSDatabaseHelper awsDatabaseHelper;
     private DynamoDBMapper mapper;
     private AWSInitMapperAsyncTask initMapperAsyncTask;
+    private Context context;
+    private AWSQueryAsyncTask.QueryAsyncResponse mListener;
 
     public static String getMyBucketName() {
         return MY_BUCKET_NAME;
     }
 
-    public AWSShareItemRepository(Context context){
+    public AWSShareItemRepository(Context context, AWSQueryAsyncTask.QueryAsyncResponse listener){
+        this.context = context;
+        this.mListener = listener;
         awsDatabaseHelper = new AWSDatabaseHelper();
         awsDatabaseHelper.buildCredentialsProvider(context);
         if(awsDatabaseHelper.buildDynamoDBClient()) {
@@ -47,7 +48,7 @@ public class AWSShareItemRepository implements AWSInitMapperAsyncTask.AsyncRespo
     public void insert(ShareItem item){
         if(item != null) {
             if(checkMapper()) {
-                AWSTaskParams params = new AWSTaskParams(item, mapper);
+                AWSUploadTaskParams params = new AWSUploadTaskParams(item, mapper);
                 AWSUploadAsyncTask awsUploadAsyncTask = new AWSUploadAsyncTask();
                 awsUploadAsyncTask.execute(params);
                 Log.d(TAG, "AWS save thread started...");
@@ -58,6 +59,28 @@ public class AWSShareItemRepository implements AWSInitMapperAsyncTask.AsyncRespo
         }
         else{
             Log.d(TAG, "ShareItem is null, not uploading");
+        }
+    }
+
+    //Query with a 0.03 difference which envelopes the points that fit in the
+    // square that could show the screen
+    public void findSDGImages(Location location){
+        if(location != null) {
+            if(checkMapper()) {
+                AWSQueryTaskParams params = new AWSQueryTaskParams(location, mapper);
+                AWSQueryAsyncTask awsUploadAsyncTask = new AWSQueryAsyncTask(
+                        this,
+                        context.getResources().getString(R.string.sdg_download_pictures_path)
+                );
+                awsUploadAsyncTask.execute(params);
+                Log.d(TAG, "AWS query thread started...");
+            }
+            else{
+                Log.d(TAG, "Error mapper is null, not initialized properly");
+            }
+        }
+        else{
+            Log.d(TAG, "location is null, not querying for nearby points");
         }
     }
 
@@ -84,5 +107,10 @@ public class AWSShareItemRepository implements AWSInitMapperAsyncTask.AsyncRespo
     @Override
     public void processFinish(DynamoDBMapper output) {
         this.mapper = output;
+    }
+
+    @Override
+    public void queryProcessFinish(ArrayList<ShareItem> output) {
+        mListener.queryProcessFinish(output);
     }
 }

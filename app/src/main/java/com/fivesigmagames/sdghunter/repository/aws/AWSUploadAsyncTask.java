@@ -12,18 +12,18 @@ import java.io.File;
  * Created by ppanero on 18/10/2016.
  */
 
-public class AWSUploadAsyncTask extends AsyncTask<AWSTaskParams, Void, Void> {
+public class AWSUploadAsyncTask extends AsyncTask<AWSUploadTaskParams, Void, Void> {
 
     // CONSTANTS
     private static final String TAG = "SDG [AWS Upload]";
 
 
     @Override
-    protected Void doInBackground(AWSTaskParams... awsParams) {
+    protected Void doInBackground(AWSUploadTaskParams... awsParams) {
         int count = awsParams.length;
         if(count == 1){
             Log.d(TAG, "Uploading ShareItem...");
-            AWSTaskParams params = awsParams[0];
+            AWSUploadTaskParams params = awsParams[0];
             DynamoDBMapper mapper = params.getMapper();
             ShareItem item = params.getItem();
 

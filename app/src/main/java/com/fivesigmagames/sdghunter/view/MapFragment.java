@@ -157,7 +157,7 @@ public class MapFragment extends Fragment {
         super.onDetach();
     }
 
-    public void updateMap(ArrayList<ShareItem> shareItemList, Location center){
+    public void updateMap(ArrayList<ShareItem> shareItemList, Location center, boolean clear){
 
         if (center != null) {
             mCenter = center;
@@ -171,7 +171,9 @@ public class MapFragment extends Fragment {
         if (shareItemList != null) {
             mShareItemList = shareItemList;
             if(mMapboxMap != null){
-                mMapboxMap.clear();
+                if(clear) {
+                    mMapboxMap.clear();
+                }
                 for (ShareItem item : mShareItemList) {
                     String title = getFullPathForTitle(item);
                     mMapboxMap.addMarker(new MarkerViewOptions()

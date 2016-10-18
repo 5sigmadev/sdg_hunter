@@ -1,24 +1,25 @@
 package com.fivesigmagames.sdghunter.repository.aws;
 
+import android.location.Location;
+
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
-import com.fivesigmagames.sdghunter.model.ShareItem;
 
 /**
  * Created by ppanero on 18/10/2016.
  */
 
-public class AWSTaskParams {
+public class AWSQueryTaskParams {
 
-    private ShareItem item;
+    private Location location;
     private DynamoDBMapper mapper;
 
-    public AWSTaskParams(ShareItem shareItem, DynamoDBMapper mapper) {
-        this.item = shareItem;
+    public AWSQueryTaskParams(Location location, DynamoDBMapper mapper) {
+        this.location = location;
         this.mapper = mapper;
     }
 
-    public ShareItem getItem() {
-        return item;
+    public Location getLocation() {
+        return location;
     }
 
     public DynamoDBMapper getMapper() {
