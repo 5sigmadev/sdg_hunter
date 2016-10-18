@@ -1,8 +1,6 @@
 package com.fivesigmagames.sdghunter.repository.aws;
 
-import com.amazonaws.geo.model.GeoPoint;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBAttribute;
-import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBDocument;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBHashKey;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBTable;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.S3Link;
@@ -15,16 +13,19 @@ import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.S3Link;
 public class AWSShareItem {
 
     // CONSTANTS
-    private static final String LOCATION_ATTR_NAME = "location";
+    private static final String LAT_ATTR_NAME = "lat";
+    private static final String LNG_ATTR_NAME = "lng";
     private static final String FILENAME_ATTR_NAME = "picture_name";
     private static final String PHOTO_ATTR_NAME = "photoS3";
 
     // VARS
     private String filename;
     private S3Link photo;
-    private GeoPoint location;
+    private double latitude;
+    private double longitude;
 
-    @DynamoDBHashKey(attributeName = "picture_name")
+
+    @DynamoDBHashKey(attributeName = FILENAME_ATTR_NAME)
     public String getFilename() {
         return filename;
     }
@@ -33,7 +34,7 @@ public class AWSShareItem {
         this.filename = filename;
     }
 
-    @DynamoDBAttribute(attributeName = "photoS3")
+    @DynamoDBAttribute(attributeName = PHOTO_ATTR_NAME)
     public S3Link getPhoto() {
         return photo;
     }
@@ -42,17 +43,32 @@ public class AWSShareItem {
         this.photo = photo;
     }
 
-    @DynamoDBAttribute(attributeName = LOCATION_ATTR_NAME)
-    public GeoPoint getLocation() {
-        return location;
+    @DynamoDBAttribute(attributeName = LAT_ATTR_NAME)
+    public double getLatitude() {
+        return latitude;
     }
 
-    public void setLocation(GeoPoint location) {
-        this.location = location;
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
     }
 
-    public static String getLocationAttrName() {
-        return LOCATION_ATTR_NAME;
+    @DynamoDBAttribute(attributeName = LNG_ATTR_NAME)
+    public double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
+    }
+
+    // ATTRS
+
+    public static String getLatAttrName() {
+        return LAT_ATTR_NAME;
+    }
+
+    public static String getLngAttrName() {
+        return LNG_ATTR_NAME;
     }
 
     public static String getFilenameAttrName() {

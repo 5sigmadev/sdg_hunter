@@ -1,12 +1,14 @@
 package com.fivesigmagames.sdghunter.repository.aws;
 
 import android.content.Context;
+import android.os.AsyncTask;
 import android.util.Log;
 
 import com.amazonaws.geo.GeoDataManager;
 import com.amazonaws.geo.GeoDataManagerConfiguration;
 import com.amazonaws.geo.model.GeoPoint;
 import com.amazonaws.geo.model.PutPointRequest;
+import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.S3Link;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.PutItemRequest;
@@ -18,50 +20,69 @@ import java.io.File;
  * Created by ppanero on 17/10/2016.
  */
 
-public class AWSShareItemRepository {
+public class AWSShareItemRepository implements AWSInitMapperAsyncTask.AsyncResponse{
 
     // CONSTANTS
     private static final String MY_BUCKET_NAME = "sdg-hunter";
     private static final String TAG = "SDG [AWS Repository]";
-    private static final String TABLE_NAME = "PICTURES";
+
     // VARS
     private AWSDatabaseHelper awsDatabaseHelper;
-    private GeoDataManager geoDataManager;
+    private DynamoDBMapper mapper;
+    private AWSInitMapperAsyncTask initMapperAsyncTask;
 
+    public static String getMyBucketName() {
+        return MY_BUCKET_NAME;
+    }
 
     public AWSShareItemRepository(Context context){
         awsDatabaseHelper = new AWSDatabaseHelper();
         awsDatabaseHelper.buildCredentialsProvider(context);
         if(awsDatabaseHelper.buildDynamoDBClient()) {
-            GeoDataManagerConfiguration config = new GeoDataManagerConfiguration(
-                    awsDatabaseHelper.getDdbClient(),
-                    TABLE_NAME
-            ).withGeoJsonAttributeName(AWSShareItem.getLocationAttrName());
-            geoDataManager = new GeoDataManager(config);
+            initMapperAsyncTask = new AWSInitMapperAsyncTask(this);
+            initMapperAsyncTask.execute(awsDatabaseHelper);
         }
     }
 
     public void insert(ShareItem item){
-
-        AttributeValue rangeKeyValue = new AttributeValue().withS(item.getTitle());
-        final PutPointRequest putPointRequest = new PutPointRequest(
-                new GeoPoint(item.getLatitude(), item.getLongitude()), rangeKeyValue
-        );
-        /*
-        awsItem.setPhoto(dynamoDBMapper.createS3Link(MY_BUCKET_NAME, item.getFullPath()));
-        Log.d(TAG, "AWS Item created");
-        awsItem.getPhoto().uploadFrom(new File(item.getFullPath()));
-        Log.d(TAG, "AWS photo uploaded to S3");
-        */
-        final Runnable runnable = new Runnable() {
-            public void run() {
-                geoDataManager.putPoint(putPointRequest);
-                Log.d(TAG, "AWS Item saved in DynamoDB");
+        if(item != null) {
+            if(checkMapper()) {
+                AWSTaskParams params = new AWSTaskParams(item, mapper);
+                AWSUploadAsyncTask awsUploadAsyncTask = new AWSUploadAsyncTask();
+                awsUploadAsyncTask.execute(params);
+                Log.d(TAG, "AWS save thread started...");
             }
+            else{
+                Log.d(TAG, "Error mapper is null, not initialized properly");
+            }
+        }
+        else{
+            Log.d(TAG, "ShareItem is null, not uploading");
+        }
+    }
 
-        };
-        Thread mThread = new Thread(runnable);
-        mThread.start();
-        Log.d(TAG, "AWS save thread started...");
+    private boolean checkMapper() {
+        if(initMapperAsyncTask.getStatus() == AsyncTask.Status.FINISHED){
+            if(mapper != null) return true;
+            else{
+                initMapperAsyncTask = new AWSInitMapperAsyncTask(this);
+                initMapperAsyncTask.execute(awsDatabaseHelper);
+            }
+        }
+        else if(initMapperAsyncTask.getStatus() == AsyncTask.Status.RUNNING){
+            Log.d(TAG, "Still initializing mapper, wait a few seconds...");
+        }
+        else if(initMapperAsyncTask.getStatus() == AsyncTask.Status.PENDING){
+            initMapperAsyncTask.cancel(true);
+            initMapperAsyncTask = new AWSInitMapperAsyncTask(this);
+            initMapperAsyncTask.execute(awsDatabaseHelper);
+        }
+        return false;
+    }
+
+
+    @Override
+    public void processFinish(DynamoDBMapper output) {
+        this.mapper = output;
     }
 }

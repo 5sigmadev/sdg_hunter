@@ -426,6 +426,7 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
                 String picPath = extras.getString("pic_path");
                 intent.putExtra("pic_path", picPath);
                 savePhotoEntryInDb(picPath);
+                uploadPhotoEntryToAWS(picPath);
                 updateShareFragment(picPath);
                 updateMapFragment(getSDGImage(picPath));
                 startActivity(intent);
@@ -612,7 +613,7 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
             ShareItem item = fragment.getShareItem(position);
 
             //Upload to AWS
-            uploadPhotoEntryToAWS(item.getFullPath());
+            uploadPhotoEntryToAWS(item.getFullPath(), item.getLatitude(), item.getLongitude());
             //Create intent
             Intent intent = new Intent(SDGActivity.this, ShareActivity.class);
             intent.putExtra("pic_path", item.getFullPath());
@@ -630,6 +631,14 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
             String[] parts = picPath.split(File.separator);
             mAwsShareItemRepository.insert(new ShareItem(parts[parts.length - 1], picPath,
                     mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()));
+        }
+    }
+
+    private void uploadPhotoEntryToAWS(String picPath, double lat, double lng) {
+        if(mCurrentLocation != null){
+            String[] parts = picPath.split(File.separator);
+            mAwsShareItemRepository.insert(new ShareItem(parts[parts.length - 1], picPath,
+                    lat, lng));
         }
     }
 
