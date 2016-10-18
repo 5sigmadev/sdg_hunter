@@ -710,8 +710,15 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
                 for (int i = 0; i < listFile.length; i++) {
                     ShareItem item = mSqliteShareItemRepository.findByName(listFile[i].getName());
                     if (item != null) {
-                        item.setFullPath(listFile[i].getAbsolutePath());
-                        files.add(item);
+                        if(
+                                mCurrentLocation.getLongitude() + 0.03 <= item.getLongitude() &&
+                                mCurrentLocation.getLongitude() - 0.03 >= item.getLongitude() &&
+                                mCurrentLocation.getLatitude() + 0.03 <= item.getLatitude() &&
+                                mCurrentLocation.getLatitude() - 0.03 >= item.getLatitude()
+                        ){
+                            item.setFullPath(listFile[i].getAbsolutePath());
+                            files.add(item);
+                        }
                     } else {
                         Log.e(TAG, "An entry in the db should exist for " + listFile[i].getName());
                     }
@@ -758,6 +765,7 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
                 }
                 Location auxLocation = intent.getParcelableExtra("LOCATION");
                 if (distanceBetween(auxLocation) >= DISTANCE_THRESHOLD) {
+                    mAwsShareItemRepository.findSDGImages(mCurrentLocation);
                     shareItemList = getSDGImages();
                 }
                 mCurrentLocation = auxLocation;
