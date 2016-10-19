@@ -4,6 +4,7 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
+import com.amazonaws.services.s3.model.Region;
 import com.fivesigmagames.sdghunter.model.ShareItem;
 
 import java.io.File;
@@ -33,7 +34,11 @@ public class AWSUploadAsyncTask extends AsyncTask<AWSUploadTaskParams, Void, Voi
             awsItem.setLongitude(item.getLongitude());
             awsItem.setFilename(item.getTitle());
             // S3 pic
-            awsItem.setPhoto(mapper.createS3Link(AWSShareItemRepository.getMyBucketName(), item.getTitle()));
+            awsItem.setPhoto(mapper.createS3Link(
+                    Region.US_West_2,
+                    AWSShareItemRepository.getMyBucketName(),
+                    item.getTitle())
+            );
             awsItem.getPhoto().uploadFrom(new File(item.getFullPath()));
             // Save
             mapper.save(awsItem);

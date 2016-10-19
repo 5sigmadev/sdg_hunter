@@ -710,15 +710,8 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
                 for (int i = 0; i < listFile.length; i++) {
                     ShareItem item = mSqliteShareItemRepository.findByName(listFile[i].getName());
                     if (item != null) {
-                        if(
-                                mCurrentLocation.getLongitude() + 0.03 <= item.getLongitude() &&
-                                mCurrentLocation.getLongitude() - 0.03 >= item.getLongitude() &&
-                                mCurrentLocation.getLatitude() + 0.03 <= item.getLatitude() &&
-                                mCurrentLocation.getLatitude() - 0.03 >= item.getLatitude()
-                        ){
                             item.setFullPath(listFile[i].getAbsolutePath());
                             files.add(item);
-                        }
                     } else {
                         Log.e(TAG, "An entry in the db should exist for " + listFile[i].getName());
                     }
@@ -761,11 +754,16 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
                 ArrayList<ShareItem> shareItemList = null;
                 if (mCurrentLocation == null) {
                     mCurrentLocation = intent.getParcelableExtra("LOCATION");
+                    if (checkSDGHunterDirectory(DOWNLOAD_DIR) != null) {
+                        mAwsShareItemRepository.findSDGImages(mCurrentLocation);
+                    }
                     shareItemList = getSDGImages();
                 }
                 Location auxLocation = intent.getParcelableExtra("LOCATION");
                 if (distanceBetween(auxLocation) >= DISTANCE_THRESHOLD) {
-                    mAwsShareItemRepository.findSDGImages(mCurrentLocation);
+                    if (checkSDGHunterDirectory(DOWNLOAD_DIR) != null) {
+                        mAwsShareItemRepository.findSDGImages(mCurrentLocation);
+                    }
                     shareItemList = getSDGImages();
                 }
                 mCurrentLocation = auxLocation;
@@ -778,6 +776,9 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
 
     @Override
     public void queryProcessFinish(ArrayList<ShareItem> output) {
+        for(ShareItem item : output){
+            updateGallery(item.getFullPath());
+        }
         MapFragment fragment = (MapFragment) getSupportFragmentManager().findFragmentByTag(getFragementTag(1));
         if(fragment != null) {
             fragment.updateMap(output, mCurrentLocation, false);

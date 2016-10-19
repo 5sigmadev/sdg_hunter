@@ -2,6 +2,7 @@ package com.fivesigmagames.sdghunter.repository.aws;
 
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBAttribute;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBHashKey;
+import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBIgnore;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBTable;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.S3Link;
 
@@ -63,19 +64,25 @@ public class AWSShareItem {
 
     // ATTRS
 
+    @DynamoDBIgnore
     public static String getLatAttrName() {
         return LAT_ATTR_NAME;
     }
 
+    @DynamoDBIgnore
     public static String getLngAttrName() {
         return LNG_ATTR_NAME;
     }
 
+    @DynamoDBIgnore
     public static String getFilenameAttrName() {
         return FILENAME_ATTR_NAME;
     }
 
+    @DynamoDBIgnore
     public static String getPhotoAttrName() {
         return PHOTO_ATTR_NAME;
     }
+
+
 }

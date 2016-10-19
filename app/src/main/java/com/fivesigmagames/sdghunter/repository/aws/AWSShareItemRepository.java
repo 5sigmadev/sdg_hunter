@@ -9,6 +9,7 @@ import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
 import com.fivesigmagames.sdghunter.R;
 import com.fivesigmagames.sdghunter.model.ShareItem;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -67,10 +68,15 @@ public class AWSShareItemRepository implements AWSInitMapperAsyncTask.InitMapper
     public void findSDGImages(Location location){
         if(location != null) {
             if(checkMapper()) {
+                String folder = context.getResources().getString(R.string.sdg_pictures_path)
+                        .concat(File.separator)
+                        .concat(
+                            context.getResources().getString(R.string.sdg_download_pictures_path)
+                        );
                 AWSQueryTaskParams params = new AWSQueryTaskParams(location, mapper);
                 AWSQueryAsyncTask awsUploadAsyncTask = new AWSQueryAsyncTask(
                         this,
-                        context.getResources().getString(R.string.sdg_download_pictures_path)
+                        folder
                 );
                 awsUploadAsyncTask.execute(params);
                 Log.d(TAG, "AWS query thread started...");

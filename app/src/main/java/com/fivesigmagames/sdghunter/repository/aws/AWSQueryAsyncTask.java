@@ -7,11 +7,8 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
-import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBQueryExpression;
+import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBScanExpression;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
-import com.amazonaws.services.dynamodbv2.model.Condition;
-import com.fivesigmagames.sdghunter.R;
 import com.fivesigmagames.sdghunter.model.ShareItem;
 
 import java.io.File;
@@ -32,10 +29,10 @@ public class AWSQueryAsyncTask extends AsyncTask<AWSQueryTaskParams, Void, Array
     private static final String TAG = "SDG [AWS Upload]";
 
     // VARS
-    public AWSInitMapperAsyncTask.InitMapperAsyncResponse delegate = null;
+    public QueryAsyncResponse delegate = null;
     private String downloadDir;
 
-    public AWSQueryAsyncTask(AWSInitMapperAsyncTask.InitMapperAsyncResponse delegate, String downloadDir){
+    public AWSQueryAsyncTask(QueryAsyncResponse delegate, String downloadDir){
         this.delegate = delegate;
         this.downloadDir = downloadDir;
     }
@@ -49,12 +46,17 @@ public class AWSQueryAsyncTask extends AsyncTask<AWSQueryTaskParams, Void, Array
             DynamoDBMapper mapper = params.getMapper();
             Location location = params.getLocation();
 
-            Map<String, Condition> conditionsMap = getStringConditionMap(location);
+            Map<String, AttributeValue> conditionsMap = getStringConditionMap(location);
 
-            DynamoDBQueryExpression<AWSShareItem> queryExpression = new DynamoDBQueryExpression<AWSShareItem>()
-                    .withRangeKeyConditions(conditionsMap);
+            DynamoDBScanExpression scanExpression = new DynamoDBScanExpression()
+                    .withFilterExpression(AWSShareItem.getLatAttrName() + " >= :val1 and " +
+                                            AWSShareItem.getLatAttrName() + " <= :val2 and " +
+                                            AWSShareItem.getLngAttrName() + " >= :val3 and " +
+                                            AWSShareItem.getLngAttrName() + " <= :val4"
+                    )
+                    .withExpressionAttributeValues(conditionsMap);
 
-            List<AWSShareItem> fittingShareItems = mapper.query(AWSShareItem.class, queryExpression);
+            List<AWSShareItem> fittingShareItems = mapper.scan(AWSShareItem.class, scanExpression);
 
             return transformAWSShareItemtoShareItem(fittingShareItems);
 
@@ -75,6 +77,10 @@ public class AWSQueryAsyncTask extends AsyncTask<AWSQueryTaskParams, Void, Array
             File downloadFile = new File(dir.getAbsolutePath(), filename);
             if(!downloadFile.exists()){
                 awsItem.getPhoto().downloadTo(downloadFile);
+                Log.d(TAG, "Downloading picture " + downloadFile.getAbsolutePath());
+            }
+            else{
+                Log.d(TAG, "Picture already exists: " + downloadFile.getAbsolutePath());
             }
             shareItemList.add(new ShareItem(filename, downloadFile.getAbsolutePath(),
                     awsItem.getLatitude(), awsItem.getLongitude()));
@@ -84,27 +90,22 @@ public class AWSQueryAsyncTask extends AsyncTask<AWSQueryTaskParams, Void, Array
 
 
     @NonNull
-    private Map<String, Condition> getStringConditionMap(Location location) {
-        Condition latMin = new Condition()
-                .withComparisonOperator(ComparisonOperator.GT.toString())
-                .withAttributeValueList(new AttributeValue().withN(String.valueOf(location.getLatitude() - 0.03)));
-        Condition latMax = new Condition()
-                .withComparisonOperator(ComparisonOperator.LT.toString())
-                .withAttributeValueList(new AttributeValue().withN(String.valueOf(location.getLatitude() + 0.03)));
-        Condition lngMin = new Condition()
-                .withComparisonOperator(ComparisonOperator.GT.toString())
-                .withAttributeValueList(new AttributeValue().withN(String.valueOf(location.getLongitude() - 0.03)));
-        Condition lngMax = new Condition()
-                .withComparisonOperator(ComparisonOperator.LT.toString())
-                .withAttributeValueList(new AttributeValue().withN(String.valueOf(location.getLongitude() + 0.03)));
+    private Map<String, AttributeValue> getStringConditionMap(Location location) {
 
-        Map<String, Condition> conditionsMap = new HashMap<>();
-        conditionsMap.put(AWSShareItem.getLatAttrName(), latMin);
-        conditionsMap.put(AWSShareItem.getLatAttrName(), latMax);
-        conditionsMap.put(AWSShareItem.getLngAttrName(), lngMin);
-        conditionsMap.put(AWSShareItem.getLngAttrName(), lngMax);
+        Map<String, AttributeValue> conditionsMap = new HashMap<>();
+        conditionsMap.put(":val1", new AttributeValue().withN(String.valueOf(location.getLatitude() - 0.03)));
+        conditionsMap.put(":val2", new AttributeValue().withN(String.valueOf(location.getLatitude() + 0.03)));
+        conditionsMap.put(":val3", new AttributeValue().withN(String.valueOf(location.getLongitude() - 0.03)));
+        conditionsMap.put(":val4", new AttributeValue().withN(String.valueOf(location.getLongitude() + 0.03)));
+
         return conditionsMap;
     }
+
+    @Override
+    protected void onPostExecute(ArrayList<ShareItem> result) {
+        delegate.queryProcessFinish(result);
+    }
+
 
     // INTERFACES
 
