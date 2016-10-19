@@ -8,6 +8,7 @@ import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
+import com.fivesigmagames.sdghunter.R;
 
 /**
  * Created by ppanero on 17/10/2016.
@@ -16,10 +17,7 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 public class AWSDatabaseHelper {
 
     // CONSTANTS
-    private static final String IDENTITY_POOL_ID = "us-west-2:650953df-bbe0-414b-9b13-4c4f43b71598";
-    private static final String ACCOUNT_ID = "445409667147";
-    private static final String AUTH_ROLE = "arn:aws:iam::445409667147:role/Cognito_SDGHunterAuth_Role";
-    private static final String UNAUTH_ROLE = "arn:aws:iam::445409667147:role/Cognito_SDGHunterUnauth_Role";
+
     private static final String TAG = "SDG [AWS DB Helper]";
 
     // VARS
@@ -39,10 +37,10 @@ public class AWSDatabaseHelper {
             // Initialize the Amazon Cognito credentials provider
             credentialsProvider = new CognitoCachingCredentialsProvider(
                     context,
-                    ACCOUNT_ID, //Account user ID
-                    IDENTITY_POOL_ID, // your identity pool id
-                    UNAUTH_ROLE, // an unauthenticated role ARN
-                    AUTH_ROLE,// an authenticated role ARN
+                    context.getResources().getString(R.string.account_id), //Account user ID
+                    context.getResources().getString(R.string.identity_pool_id), // your identity pool id
+                    context.getResources().getString(R.string.unauth_role), // an unauthenticated role ARN
+                    context.getResources().getString(R.string.auth_role),// an authenticated role ARN
                     Regions.US_WEST_2 // Region
             );
         }
