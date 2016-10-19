@@ -1,4 +1,4 @@
-package com.fivesigmagames.sdghunter.model.repository;
+package com.fivesigmagames.sdghunter.repository.sqlite;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -7,12 +7,12 @@ import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
 import com.fivesigmagames.sdghunter.model.ShareItem;
-import com.fivesigmagames.sdghunter.model.repository.ShareItemContract.ShareItemEntry;
+import com.fivesigmagames.sdghunter.repository.sqlite.SqliteShareItemContract.ShareItemEntry;
 /**
  * Created by ppanero on 06/10/16.
  */
 
-public class ShareItemRepository {
+public class SqliteShareItemRepository {
 
     //CONSTANTS
     private static final String TAG = "SDG [ShareItemRepos]";
@@ -32,10 +32,10 @@ public class ShareItemRepository {
             "DROP TABLE IF EXISTS " + ShareItemEntry.TABLE_NAME;
 
     // VARS
-    SDGHunterDBHelper mDbHelper;
+    SqliteDatabaseHelper mDbHelper;
 
-    public ShareItemRepository(Context context){
-        mDbHelper = new SDGHunterDBHelper(context);
+    public SqliteShareItemRepository(Context context){
+        mDbHelper = new SqliteDatabaseHelper(context);
     }
 
     public void insert(ShareItem item){

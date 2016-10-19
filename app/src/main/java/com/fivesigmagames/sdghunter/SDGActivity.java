@@ -34,7 +34,9 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.fivesigmagames.sdghunter.model.ShareItem;
-import com.fivesigmagames.sdghunter.model.repository.ShareItemRepository;
+import com.fivesigmagames.sdghunter.repository.aws.AWSQueryAsyncTask;
+import com.fivesigmagames.sdghunter.repository.aws.AWSShareItemRepository;
+import com.fivesigmagames.sdghunter.repository.sqlite.SqliteShareItemRepository;
 import com.fivesigmagames.sdghunter.services.LocationService;
 import com.fivesigmagames.sdghunter.view.AboutFragment;
 import com.fivesigmagames.sdghunter.view.HomeFragment;
@@ -54,12 +56,13 @@ import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import static android.os.Environment.getExternalStoragePublicDirectory;
 
 public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHomeFragmentInteractionListener,
         MapFragment.OnFragmentInteractionListener, ShareFragment.OnShareFragmentInteractionListener,
-        AboutFragment.OnAboutFragmentInteractionListener {
+        AboutFragment.OnAboutFragmentInteractionListener, AWSQueryAsyncTask.QueryAsyncResponse {
 
     // CONSTANTS
     private static final String TAG = "SDG [Main Activity]";
@@ -108,7 +111,8 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
     private String mCurrentPhotoPath;
     private Location mCurrentLocation;
     private boolean mLocationEnabled;
-    private ShareItemRepository mShareItemRepository;
+    private SqliteShareItemRepository mSqliteShareItemRepository;
+    private AWSShareItemRepository mAwsShareItemRepository;
     private boolean mPermissionsGranted;
 
     @Override
@@ -297,7 +301,8 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
             Intent intent = new Intent(this, LocationService.class);
             startService(intent);
 
-            mShareItemRepository = new ShareItemRepository(this);
+            mSqliteShareItemRepository = new SqliteShareItemRepository(this);
+            mAwsShareItemRepository = new AWSShareItemRepository(this, this);
         }
         else{
             checkPermissions();
@@ -423,6 +428,7 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
                 String picPath = extras.getString("pic_path");
                 intent.putExtra("pic_path", picPath);
                 savePhotoEntryInDb(picPath);
+                uploadPhotoEntryToAWS(picPath);
                 updateShareFragment(picPath);
                 updateMapFragment(getSDGImage(picPath));
                 startActivity(intent);
@@ -506,7 +512,7 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
         ShareFragment fragment = (ShareFragment) getSupportFragmentManager().findFragmentByTag(getFragementTag(2));
         if(fragment != null) {
             String[] parts = picPath.split(File.separator);
-            ShareItem item = mShareItemRepository.findByName(parts[parts.length - 1]);
+            ShareItem item = mSqliteShareItemRepository.findByName(parts[parts.length - 1]);
             item.setFullPath(picPath);
             fragment.updateSharedGrid(item);
             Log.d(TAG, " ShareFragement updated with item " + picPath);
@@ -545,7 +551,7 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
         }
         else {
             String[] parts = picPath.split(File.separator);
-            mShareItemRepository.insert(new ShareItem(parts[parts.length - 1], picPath,
+            mSqliteShareItemRepository.insert(new ShareItem(parts[parts.length - 1], picPath,
                     mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()));
         }
     }
@@ -608,6 +614,8 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
             ShareFragment fragment = (ShareFragment) getSupportFragmentManager().findFragmentByTag(getFragementTag(2));
             ShareItem item = fragment.getShareItem(position);
 
+            //Upload to AWS
+            uploadPhotoEntryToAWS(item.getFullPath(), item.getLatitude(), item.getLongitude());
             //Create intent
             Intent intent = new Intent(SDGActivity.this, ShareActivity.class);
             intent.putExtra("pic_path", item.getFullPath());
@@ -617,6 +625,22 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
         else{
             checkPermissions();
             mPermissionsGranted = updateOverallPermissionStatus();
+        }
+    }
+
+    private void uploadPhotoEntryToAWS(String picPath) {
+        if(mCurrentLocation != null){
+            String[] parts = picPath.split(File.separator);
+            mAwsShareItemRepository.insert(new ShareItem(parts[parts.length - 1], picPath,
+                    mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()));
+        }
+    }
+
+    private void uploadPhotoEntryToAWS(String picPath, double lat, double lng) {
+        if(mCurrentLocation != null){
+            String[] parts = picPath.split(File.separator);
+            mAwsShareItemRepository.insert(new ShareItem(parts[parts.length - 1], picPath,
+                    lat, lng));
         }
     }
 
@@ -684,10 +708,10 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
             if (file.isDirectory()) {
                 File[] listFile = file.listFiles();
                 for (int i = 0; i < listFile.length; i++) {
-                    ShareItem item = mShareItemRepository.findByName(listFile[i].getName());
+                    ShareItem item = mSqliteShareItemRepository.findByName(listFile[i].getName());
                     if (item != null) {
-                        item.setFullPath(listFile[i].getAbsolutePath());
-                        files.add(item);
+                            item.setFullPath(listFile[i].getAbsolutePath());
+                            files.add(item);
                     } else {
                         Log.e(TAG, "An entry in the db should exist for " + listFile[i].getName());
                     }
@@ -705,7 +729,7 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
     private ShareItem getSDGImage(String picPath) {
         if(mPermissionsGranted) {
             String[] parts = picPath.split(File.separator);
-            ShareItem item = mShareItemRepository.findByName(parts[parts.length - 1]);
+            ShareItem item = mSqliteShareItemRepository.findByName(parts[parts.length - 1]);
             if (item != null) {
                 item.setFullPath(picPath);
                 return item;
@@ -730,17 +754,34 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
                 ArrayList<ShareItem> shareItemList = null;
                 if (mCurrentLocation == null) {
                     mCurrentLocation = intent.getParcelableExtra("LOCATION");
+                    if (checkSDGHunterDirectory(DOWNLOAD_DIR) != null) {
+                        mAwsShareItemRepository.findSDGImages(mCurrentLocation);
+                    }
                     shareItemList = getSDGImages();
                 }
                 Location auxLocation = intent.getParcelableExtra("LOCATION");
                 if (distanceBetween(auxLocation) >= DISTANCE_THRESHOLD) {
+                    if (checkSDGHunterDirectory(DOWNLOAD_DIR) != null) {
+                        mAwsShareItemRepository.findSDGImages(mCurrentLocation);
+                    }
                     shareItemList = getSDGImages();
                 }
                 mCurrentLocation = auxLocation;
-                fragment.updateMap(shareItemList, mCurrentLocation);
+                fragment.updateMap(shareItemList, mCurrentLocation, true);
                 Log.d(TAG, "Current location: lat - " + mCurrentLocation.getLatitude() +
                         " long -" + mCurrentLocation.getLongitude());
             }
+        }
+    }
+
+    @Override
+    public void queryProcessFinish(ArrayList<ShareItem> output) {
+        for(ShareItem item : output){
+            updateGallery(item.getFullPath());
+        }
+        MapFragment fragment = (MapFragment) getSupportFragmentManager().findFragmentByTag(getFragementTag(1));
+        if(fragment != null) {
+            fragment.updateMap(output, mCurrentLocation, false);
         }
     }
 
