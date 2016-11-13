@@ -34,7 +34,9 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.fivesigmagames.sdghunter.model.ShareItem;
-import com.fivesigmagames.sdghunter.model.repository.ShareItemRepository;
+import com.fivesigmagames.sdghunter.repository.aws.AWSQueryAsyncTask;
+import com.fivesigmagames.sdghunter.repository.aws.AWSShareItemRepository;
+import com.fivesigmagames.sdghunter.repository.sqlite.SqliteShareItemRepository;
 import com.fivesigmagames.sdghunter.services.LocationService;
 import com.fivesigmagames.sdghunter.view.AboutFragment;
 import com.fivesigmagames.sdghunter.view.HomeFragment;
@@ -54,12 +56,13 @@ import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import static android.os.Environment.getExternalStoragePublicDirectory;
 
 public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHomeFragmentInteractionListener,
         MapFragment.OnFragmentInteractionListener, ShareFragment.OnShareFragmentInteractionListener,
-        AboutFragment.OnAboutFragmentInteractionListener {
+        AboutFragment.OnAboutFragmentInteractionListener, AWSQueryAsyncTask.QueryAsyncResponse {
 
     // CONSTANTS
     private static final String TAG = "SDG [Main Activity]";
@@ -108,13 +111,16 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
     private String mCurrentPhotoPath;
     private Location mCurrentLocation;
     private boolean mLocationEnabled;
-    private ShareItemRepository mShareItemRepository;
+    private SqliteShareItemRepository mSqliteShareItemRepository;
+    private AWSShareItemRepository mAwsShareItemRepository;
     private boolean mPermissionsGranted;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sdh);
+
+        ((SDGApplication)this.getApplication()).getDefaultTracker();
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -139,7 +145,9 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
             prefsEditor.putBoolean("firstUsage", false);
             prefsEditor.apply();
             Log.d(TAG, "First usage hint shown");
+            ((SDGApplication)getApplication()).sendEvent("DEBUG", "First usage hint shown", TAG);
         }
+        ((SDGApplication)getApplication()).sendEvent("DEBUG", "Application started...", TAG);
 
     }
 
@@ -155,6 +163,8 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
                 GRANTED_PERMISSIONS[i] = false;
                 ActivityCompat.requestPermissions(this, new String[]{permission}, PERMISSIONS_RESULT[i]);
                 Log.d(TAG, "Permission: "+permission+" needed. Requesting it...");
+                ((SDGApplication)getApplication()).sendEvent("DEBUG",
+                        "Permission: "+permission+" needed. Requesting it...", TAG);
             }
             ++i;
         }
@@ -297,7 +307,8 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
             Intent intent = new Intent(this, LocationService.class);
             startService(intent);
 
-            mShareItemRepository = new ShareItemRepository(this);
+            mSqliteShareItemRepository = new SqliteShareItemRepository(this);
+            mAwsShareItemRepository = new AWSShareItemRepository(this, this);
         }
         else{
             checkPermissions();
@@ -374,6 +385,8 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
                 } catch (IOException ex) {
                     // Error occurred while creating the File
                     Toast.makeText(this, SAVING_PICTURE_ERROR_MESSAGE, Toast.LENGTH_LONG).show();
+                    ((SDGApplication)getApplication()).sendEvent("DEBUG",
+                            ex.getMessage(), TAG);
                 }
                 // Continue only if the File was successfully created
                 if (photoFile != null) {
@@ -400,6 +413,8 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
         Log.d(TAG, "OnActivityResult resultCode: " + resultCode);
         if(requestCode == RESQUEST_ACTIVATE_CAMERA && resultCode == RESULT_PHOTO_TAKEN){
             Log.d(TAG, "Starting preview...");
+            ((SDGApplication)getApplication()).sendEvent("DEBUG",
+                    "Starting preview...", TAG);
             String auxPath = data.getExtras().getString(PICTURE);
             if(auxPath != null) {
                 movePicture(mCurrentPhotoPath, auxPath);
@@ -423,6 +438,7 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
                 String picPath = extras.getString("pic_path");
                 intent.putExtra("pic_path", picPath);
                 savePhotoEntryInDb(picPath);
+                uploadPhotoEntryToAWS(picPath);
                 updateShareFragment(picPath);
                 updateMapFragment(getSDGImage(picPath));
                 startActivity(intent);
@@ -461,8 +477,12 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
             deleteFileFromMediaStore(getContentResolver(), new File(src));
         } catch (FileNotFoundException e) {
             Log.e(TAG,"Error moving file. Src " + src +" or Dst " + dst + " file not found");
+            ((SDGApplication)getApplication()).sendEvent("DEBUG",
+                    e.getMessage(), TAG);
         } catch (IOException e) {
             Log.e(TAG, "Error moving file. Unexpected IO error");
+            ((SDGApplication)getApplication()).sendEvent("DEBUG",
+                    e.getMessage(), TAG);
         }
         finally {
             if(in != null){
@@ -470,6 +490,8 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
                     in.close();
                 } catch (IOException e) {
                     Log.e(TAG, "Unexpected error closing input stream");
+                    ((SDGApplication)getApplication()).sendEvent("DEBUG",
+                            e.getMessage(), TAG);
                 }
             }
             if(out != null){
@@ -477,6 +499,8 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
                     out.close();
                 } catch (IOException e) {
                     Log.e(TAG, "Unexpected error closing output stream");
+                    ((SDGApplication)getApplication()).sendEvent("DEBUG",
+                            e.getMessage(), TAG);
                 }
             }
         }
@@ -488,7 +512,7 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
             MapFragment fragment = (MapFragment) getSupportFragmentManager().findFragmentByTag(getFragementTag(1));
             if (fragment != null) {
                 fragment.updateMap(item);
-                Log.d(TAG, " MapFragment updated with item " + item.getTitle());
+                Log.d(TAG, "MapFragment updated with item " + item.getTitle());
                 return true;
             }
             else{
@@ -506,10 +530,10 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
         ShareFragment fragment = (ShareFragment) getSupportFragmentManager().findFragmentByTag(getFragementTag(2));
         if(fragment != null) {
             String[] parts = picPath.split(File.separator);
-            ShareItem item = mShareItemRepository.findByName(parts[parts.length - 1]);
+            ShareItem item = mSqliteShareItemRepository.findByName(parts[parts.length - 1]);
             item.setFullPath(picPath);
             fragment.updateSharedGrid(item);
-            Log.d(TAG, " ShareFragement updated with item " + picPath);
+            Log.d(TAG, "ShareFragement updated with item " + picPath);
             return true;
         }
         else {
@@ -545,7 +569,7 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
         }
         else {
             String[] parts = picPath.split(File.separator);
-            mShareItemRepository.insert(new ShareItem(parts[parts.length - 1], picPath,
+            mSqliteShareItemRepository.insert(new ShareItem(parts[parts.length - 1], picPath,
                     mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()));
         }
     }
@@ -608,6 +632,8 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
             ShareFragment fragment = (ShareFragment) getSupportFragmentManager().findFragmentByTag(getFragementTag(2));
             ShareItem item = fragment.getShareItem(position);
 
+            //Upload to AWS
+            uploadPhotoEntryToAWS(item.getFullPath(), item.getLatitude(), item.getLongitude());
             //Create intent
             Intent intent = new Intent(SDGActivity.this, ShareActivity.class);
             intent.putExtra("pic_path", item.getFullPath());
@@ -617,6 +643,22 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
         else{
             checkPermissions();
             mPermissionsGranted = updateOverallPermissionStatus();
+        }
+    }
+
+    private void uploadPhotoEntryToAWS(String picPath) {
+        if(mCurrentLocation != null){
+            String[] parts = picPath.split(File.separator);
+            mAwsShareItemRepository.insert(new ShareItem(parts[parts.length - 1], picPath,
+                    mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()));
+        }
+    }
+
+    private void uploadPhotoEntryToAWS(String picPath, double lat, double lng) {
+        if(mCurrentLocation != null){
+            String[] parts = picPath.split(File.separator);
+            mAwsShareItemRepository.insert(new ShareItem(parts[parts.length - 1], picPath,
+                    lat, lng));
         }
     }
 
@@ -684,10 +726,10 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
             if (file.isDirectory()) {
                 File[] listFile = file.listFiles();
                 for (int i = 0; i < listFile.length; i++) {
-                    ShareItem item = mShareItemRepository.findByName(listFile[i].getName());
+                    ShareItem item = mSqliteShareItemRepository.findByName(listFile[i].getName());
                     if (item != null) {
-                        item.setFullPath(listFile[i].getAbsolutePath());
-                        files.add(item);
+                            item.setFullPath(listFile[i].getAbsolutePath());
+                            files.add(item);
                     } else {
                         Log.e(TAG, "An entry in the db should exist for " + listFile[i].getName());
                     }
@@ -705,7 +747,7 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
     private ShareItem getSDGImage(String picPath) {
         if(mPermissionsGranted) {
             String[] parts = picPath.split(File.separator);
-            ShareItem item = mShareItemRepository.findByName(parts[parts.length - 1]);
+            ShareItem item = mSqliteShareItemRepository.findByName(parts[parts.length - 1]);
             if (item != null) {
                 item.setFullPath(picPath);
                 return item;
@@ -730,17 +772,34 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
                 ArrayList<ShareItem> shareItemList = null;
                 if (mCurrentLocation == null) {
                     mCurrentLocation = intent.getParcelableExtra("LOCATION");
+                    if (checkSDGHunterDirectory(DOWNLOAD_DIR) != null) {
+                        mAwsShareItemRepository.findSDGImages(mCurrentLocation);
+                    }
                     shareItemList = getSDGImages();
                 }
                 Location auxLocation = intent.getParcelableExtra("LOCATION");
                 if (distanceBetween(auxLocation) >= DISTANCE_THRESHOLD) {
+                    if (checkSDGHunterDirectory(DOWNLOAD_DIR) != null) {
+                        mAwsShareItemRepository.findSDGImages(mCurrentLocation);
+                    }
                     shareItemList = getSDGImages();
                 }
                 mCurrentLocation = auxLocation;
-                fragment.updateMap(shareItemList, mCurrentLocation);
+                fragment.updateMap(shareItemList, mCurrentLocation, true);
                 Log.d(TAG, "Current location: lat - " + mCurrentLocation.getLatitude() +
                         " long -" + mCurrentLocation.getLongitude());
             }
+        }
+    }
+
+    @Override
+    public void queryProcessFinish(ArrayList<ShareItem> output) {
+        for(ShareItem item : output){
+            updateGallery(item.getFullPath());
+        }
+        MapFragment fragment = (MapFragment) getSupportFragmentManager().findFragmentByTag(getFragementTag(1));
+        if(fragment != null) {
+            fragment.updateMap(output, mCurrentLocation, false);
         }
     }
 

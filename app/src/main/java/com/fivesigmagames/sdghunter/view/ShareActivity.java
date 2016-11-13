@@ -157,7 +157,6 @@ public class ShareActivity extends AppCompatActivity {
                 File media = new File(fullPicPath);
                 Uri uri = Uri.fromFile(media);
                 share.putExtra(Intent.EXTRA_STREAM, uri);
-                //TODO: Campaign Hashtag? suppress user text and put hashtag?
                 startActivity(share);
             }
             else {
