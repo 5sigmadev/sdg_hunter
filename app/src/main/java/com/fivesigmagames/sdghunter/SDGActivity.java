@@ -120,6 +120,8 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sdh);
 
+        ((SDGApplication)this.getApplication()).getDefaultTracker();
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         // Create the adapter that will return a fragment for each of the three
@@ -143,7 +145,9 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
             prefsEditor.putBoolean("firstUsage", false);
             prefsEditor.apply();
             Log.d(TAG, "First usage hint shown");
+            ((SDGApplication)getApplication()).sendEvent("DEBUG", "First usage hint shown", TAG);
         }
+        ((SDGApplication)getApplication()).sendEvent("DEBUG", "Application started...", TAG);
 
     }
 
@@ -159,6 +163,8 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
                 GRANTED_PERMISSIONS[i] = false;
                 ActivityCompat.requestPermissions(this, new String[]{permission}, PERMISSIONS_RESULT[i]);
                 Log.d(TAG, "Permission: "+permission+" needed. Requesting it...");
+                ((SDGApplication)getApplication()).sendEvent("DEBUG",
+                        "Permission: "+permission+" needed. Requesting it...", TAG);
             }
             ++i;
         }
@@ -379,6 +385,8 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
                 } catch (IOException ex) {
                     // Error occurred while creating the File
                     Toast.makeText(this, SAVING_PICTURE_ERROR_MESSAGE, Toast.LENGTH_LONG).show();
+                    ((SDGApplication)getApplication()).sendEvent("DEBUG",
+                            ex.getMessage(), TAG);
                 }
                 // Continue only if the File was successfully created
                 if (photoFile != null) {
@@ -405,6 +413,8 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
         Log.d(TAG, "OnActivityResult resultCode: " + resultCode);
         if(requestCode == RESQUEST_ACTIVATE_CAMERA && resultCode == RESULT_PHOTO_TAKEN){
             Log.d(TAG, "Starting preview...");
+            ((SDGApplication)getApplication()).sendEvent("DEBUG",
+                    "Starting preview...", TAG);
             String auxPath = data.getExtras().getString(PICTURE);
             if(auxPath != null) {
                 movePicture(mCurrentPhotoPath, auxPath);
@@ -467,8 +477,12 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
             deleteFileFromMediaStore(getContentResolver(), new File(src));
         } catch (FileNotFoundException e) {
             Log.e(TAG,"Error moving file. Src " + src +" or Dst " + dst + " file not found");
+            ((SDGApplication)getApplication()).sendEvent("DEBUG",
+                    e.getMessage(), TAG);
         } catch (IOException e) {
             Log.e(TAG, "Error moving file. Unexpected IO error");
+            ((SDGApplication)getApplication()).sendEvent("DEBUG",
+                    e.getMessage(), TAG);
         }
         finally {
             if(in != null){
@@ -476,6 +490,8 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
                     in.close();
                 } catch (IOException e) {
                     Log.e(TAG, "Unexpected error closing input stream");
+                    ((SDGApplication)getApplication()).sendEvent("DEBUG",
+                            e.getMessage(), TAG);
                 }
             }
             if(out != null){
@@ -483,6 +499,8 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
                     out.close();
                 } catch (IOException e) {
                     Log.e(TAG, "Unexpected error closing output stream");
+                    ((SDGApplication)getApplication()).sendEvent("DEBUG",
+                            e.getMessage(), TAG);
                 }
             }
         }
@@ -494,7 +512,7 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
             MapFragment fragment = (MapFragment) getSupportFragmentManager().findFragmentByTag(getFragementTag(1));
             if (fragment != null) {
                 fragment.updateMap(item);
-                Log.d(TAG, " MapFragment updated with item " + item.getTitle());
+                Log.d(TAG, "MapFragment updated with item " + item.getTitle());
                 return true;
             }
             else{
@@ -515,7 +533,7 @@ public class SDGActivity extends AppCompatActivity implements HomeFragment.OnHom
             ShareItem item = mSqliteShareItemRepository.findByName(parts[parts.length - 1]);
             item.setFullPath(picPath);
             fragment.updateSharedGrid(item);
-            Log.d(TAG, " ShareFragement updated with item " + picPath);
+            Log.d(TAG, "ShareFragement updated with item " + picPath);
             return true;
         }
         else {
