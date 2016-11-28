@@ -57,7 +57,7 @@ public class ShareActivity extends AppCompatActivity {
 
         Bitmap bitmap = BitmapFactory.decodeFile(picFullPath,bmOptions);
         ImageView imageView = (ImageView) findViewById(R.id.share_activity_pic);
-        imageView.setImageBitmap(BitmapUtils.rotateImage(bitmap, BitmapUtils.getRotationAngle(picFullPath)));
+        imageView.setImageBitmap(BitMapUtils.rotateImage(bitmap, BitMapUtils.getRotationAngle(picFullPath)));
 
         Button instaBtn = (Button) findViewById(R.id.btn_share_insta);
         instaBtn.setOnClickListener(new View.OnClickListener() {

@@ -55,7 +55,7 @@ public class PreviewActivity extends AppCompatActivity {
         ImageView imagePreview = (ImageView) findViewById(R.id.preview_image);
         Log.d(TAG, "Loading preview of " + mCurrentFilePath);
         if(bitmap != null) {
-            imagePreview.setImageBitmap(BitmapUtils.rotateImage(bitmap, BitmapUtils.getRotationAngle(mCurrentFilePath)));
+            imagePreview.setImageBitmap(BitMapUtils.rotateImage(bitmap, BitMapUtils.getRotationAngle(mCurrentFilePath)));
         }
         else{
             Log.d(TAG, "Error loading " + mCurrentFilePath + ". Bitmap was null");

@@ -10,7 +10,7 @@ import android.view.View;
 import android.widget.ImageView;
 
 import com.fivesigmagames.sdghunter.R;
-import com.fivesigmagames.sdghunter.view.BitmapUtils;
+import com.fivesigmagames.sdghunter.view.BitMapUtils;
 import com.mapbox.mapboxsdk.annotations.Marker;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 
@@ -35,7 +35,7 @@ public class PhotoViewAdapter implements MapboxMap.InfoWindowAdapter {
         BitmapFactory.Options bmOptions = new BitmapFactory.Options();
         Bitmap bitmap = BitmapFactory.decodeFile(marker.getTitle(),bmOptions);
         ((ImageView)rootView.findViewById(R.id.marker_image)).setImageBitmap(
-                BitmapUtils.rotateImage(bitmap, BitmapUtils.getRotationAngle(marker.getTitle()))
+                BitMapUtils.rotateImage(bitmap, BitMapUtils.getRotationAngle(marker.getTitle()))
         );
 
         return rootView;

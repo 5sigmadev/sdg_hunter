@@ -73,6 +73,7 @@ public class SDGApplication extends MultiDexApplication {
                 .setLabel("SDG Hunter")
                 .build());
 
+        e.printStackTrace();
         System.exit(1); // kill off the crashed app
     }
 }

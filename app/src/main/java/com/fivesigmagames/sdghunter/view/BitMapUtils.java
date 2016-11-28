@@ -11,7 +11,7 @@ import java.io.IOException;
  * Created by ppanero on 08/10/16.
  */
 
-public class BitmapUtils {
+public class BitMapUtils {
 
     // CONSTANTS
     private static final String TAG = "SDG [Bitmap Utils]";
