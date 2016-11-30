@@ -1,12 +1,15 @@
 package com.fivesigmagames.sdghunter.view;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -96,8 +99,51 @@ public class SDGFragment extends Fragment {
         mListener = null;
     }
 
-    public void updateDescription(int position) {
-        //TODO
+    public void showSdgDescription(int position) {
+        SDGItem sdgItem = this.mSDGItemList.get(position);
+        String formattedText = "";
+        String[] descParts = sdgItem.getDescription().split("\t\t");
+        if(descParts.length == 1) {
+            for (String descPart : descParts) {
+                String[] parts = descPart.split("\n");
+                for(String part : parts){
+                    formattedText = formattedText.concat("\u2022\t").concat(part).concat("\n\n");
+                }
+            }
+        }
+        else{
+            if(descParts.length > 1) {
+                for (String descPart : descParts) {
+                    if(!descPart.equals("")) {
+                        String[] parts = descPart.split("\t");
+                        formattedText = formattedText.concat(parts[0]).concat(":\n\n");
+                        if(parts.length > 1) {
+                            String[] textParts = parts[1].split("\n");
+                            for (String part : textParts) {
+                                formattedText = formattedText.concat("\u2022\t").concat(part).concat("\n");
+                            }
+                        }
+                        formattedText = formattedText.concat("\n");
+                    }
+                }
+            }
+        }
+
+        this.buildDescriptionDialog(sdgItem.getTitle(), formattedText);
+    }
+
+    private void buildDescriptionDialog(String title, String description) {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle(title);
+        builder.setMessage(description)
+                .setCancelable(false)
+                .setPositiveButton("Got it!", new DialogInterface.OnClickListener() {
+                    public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                        dialog.cancel();
+                    }
+                });
+        final AlertDialog alert = builder.create();
+        alert.show();
     }
 
     public interface OnSDGFragmentInteractionListener {

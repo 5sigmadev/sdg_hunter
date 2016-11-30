@@ -26,7 +26,7 @@ import static android.os.Environment.getExternalStoragePublicDirectory;
 public class AWSQueryAsyncTask extends AsyncTask<AWSQueryTaskParams, Void, ArrayList<ShareItem>> {
 
     // CONSTANTS
-    private static final String TAG = "SDG [AWS Upload]";
+    private static final String TAG = "SDG [AWS Query]";
 
     // VARS
     public QueryAsyncResponse delegate = null;
